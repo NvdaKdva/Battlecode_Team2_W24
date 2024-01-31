@@ -1,4 +1,4 @@
-package Test_Player;
+package samuel_player_sandbox;
 
 import battlecode.common.*;
 
@@ -136,48 +136,7 @@ public strictfp class RobotPlayer {
      * Run a single turn for a Carrier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
-
-    static void moveRandom(RobotController rc) throws GameActionException {
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) rc.move(dir);
-    }
-    static void moveTowards(RobotController rc, MapLocation loc) throws GameActionException {
-        Direction dir = rc.getLocation().directionTo(loc);
-        if(rc.canMove(dir)) rc.move(dir);
-        else moveRandom(rc);
-    }
-    static MapLocation hqLoc;
-    static MapLocation wellsLoc;
-
     static void runCarrier(RobotController rc) throws GameActionException {
-        if (hqLoc == null) scanHQ(rc);
-
-        if (wellsLoc == null) scanWells(rc);
-
-        //Collect from well if close and inventory not full
-        if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1))
-            rc.collectResource(wellsLoc, -1);
-
-        //Deposit resource to headquarter
-        depositResource(rc,ResourceType.ADAMANTIUM);
-        depositResource(rc,ResourceType.MANA);
-
-        int total = getTotalResources(rc);
-        //no resource then look for well
-        if (total == 0) {
-            if(wellsLoc !=null) {
-                MapLocation myLoc = rc.getLocation();
-                if (!myLoc.isAdjacentTo(wellsLoc))
-                    RobotPlayer.moveTowards(rc, wellsLoc);
-            }
-            else{
-                RobotPlayer.moveRandom(rc);
-            }
-        }
-        if (total == GameConstants.CARRIER_CAPACITY){
-            //move towards HQ
-            RobotPlayer.moveTowards(rc, hqLoc);
-        }
         if (rc.getAnchor() != null) {
             // If I have an anchor singularly focus on getting it to the first island I see
             int[] islands = rc.senseNearbyIslands();
@@ -209,9 +168,9 @@ public strictfp class RobotPlayer {
                 if (rc.canCollectResource(wellLocation, -1)) {
                     if (rng.nextBoolean()) {
                         rc.collectResource(wellLocation, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" +
-                            rc.getResourceAmount(ResourceType.ADAMANTIUM) +
-                            " MN: " + rc.getResourceAmount(ResourceType.MANA) +
+                        rc.setIndicatorString("Collecting, now have, AD:" + 
+                            rc.getResourceAmount(ResourceType.ADAMANTIUM) + 
+                            " MN: " + rc.getResourceAmount(ResourceType.MANA) + 
                             " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
                     }
                 }
@@ -226,13 +185,13 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-
+        
         // If we can see a well, move towards it
         WellInfo[] wells = rc.senseNearbyWells();
         if (wells.length > 1 && rng.nextInt(3) == 1) {
             WellInfo well_one = wells[1];
             Direction dir = me.directionTo(well_one.getMapLocation());
-            if (rc.canMove(dir))
+            if (rc.canMove(dir)) 
                 rc.move(dir);
         }
         // Also try to move randomly.
@@ -240,33 +199,6 @@ public strictfp class RobotPlayer {
         if (rc.canMove(dir)) {
             rc.move(dir);
         }
-    }
-    static void scanHQ(RobotController rc) throws GameActionException{
-        RobotInfo[] robots = rc.senseNearbyRobots();
-        for(RobotInfo robot : robots){
-            if(robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS){
-                hqLoc = robot.getLocation();
-                break;
-            }
-        }
-    }
-    static void scanWells(RobotController rc) throws GameActionException{
-        WellInfo[] wells = rc.senseNearbyWells();
-        if (wells.length > 0) {
-            wellsLoc = wells[0].getMapLocation();
-        }
-
-    }
-    static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
-        int amount = rc.getResourceAmount(type);
-        if (amount > 0){
-            if(rc.canTransferResource(hqLoc, type, amount)){
-                rc.transferResource(hqLoc, type, amount);
-            }
-        }
-    }
-    static int getTotalResources(RobotController rc){
-        return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA);
     }
 
     /**

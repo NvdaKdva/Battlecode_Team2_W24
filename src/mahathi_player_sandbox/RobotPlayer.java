@@ -1,4 +1,4 @@
-package testplayer;
+package mahathi_player_sandbox;
 
 import battlecode.common.*;
 
