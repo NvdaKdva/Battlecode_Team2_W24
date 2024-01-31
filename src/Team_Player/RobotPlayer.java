@@ -28,6 +28,11 @@ public strictfp class RobotPlayer {
      * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
      */
     static final Random rng = new Random(6147);
+    static MapLocation hqLoc;
+    static MapLocation wellLoc;
+    static MapLocation wellsLoc;
+    static MapLocation islandLoc;
+    static boolean anchorMode = false;
 
     /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
@@ -136,6 +141,22 @@ public strictfp class RobotPlayer {
      * Run a single turn for a Carrier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
+    //carriers strategy for sprint 1:
+    //Get & Place and Anchor
+    //Get Resource Data: Obtain information about these enemies.
+    //Gather & Deposit Resources:
+    //Prioritize by Goal: Claim Islands before gathering
+    //Prioritize by Type: Prioritize the lowest resources first.
+    static void moveRandom(RobotController rc) throws GameActionException {
+        Direction dir = directions[rng.nextInt(directions.length)];
+        if (rc.canMove(dir)) rc.move(dir);
+    }
+    static void moveTowards(RobotController rc, MapLocation loc) throws GameActionException {
+        Direction dir = rc.getLocation().directionTo(loc);
+        if(rc.canMove(dir)) rc.move(dir);
+        else moveRandom(rc);
+    }
+
     static void runCarrier(RobotController rc) throws GameActionException {
         if (rc.getAnchor() != null) {
             // If I have an anchor singularly focus on getting it to the first island I see
@@ -160,70 +181,121 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-        // Try to gather from squares around us.
-        MapLocation me = rc.getLocation();
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                MapLocation wellLocation = new MapLocation(me.x + dx, me.y + dy);
-                if (rc.canCollectResource(wellLocation, -1)) {
-                    if (rng.nextBoolean()) {
-                        rc.collectResource(wellLocation, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" + 
-                            rc.getResourceAmount(ResourceType.ADAMANTIUM) + 
-                            " MN: " + rc.getResourceAmount(ResourceType.MANA) + 
-                            " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                    }
-                }
+
+        if (hqLoc == null) scanHQ(rc);
+
+        if (wellsLoc == null) scanWells(rc);
+
+        //Collect from well if close and inventory not full
+        if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1))
+            rc.collectResource(wellsLoc, -1);
+
+        //Deposit resource to headquarter
+        depositResource(rc,ResourceType.ADAMANTIUM);
+        depositResource(rc,ResourceType.MANA);
+
+        int total = getTotalResources(rc);
+        //no resource then look for well
+        if (total == 0) {
+            if(wellsLoc !=null) {
+                MapLocation myLoc = rc.getLocation();
+                if (!myLoc.isAdjacentTo(wellsLoc))
+                    RobotPlayer.moveTowards(rc, wellsLoc);
+            }
+            else{
+                RobotPlayer.moveRandom(rc);
             }
         }
-        // Occasionally try out the carriers attack
-        if (rng.nextInt(20) == 1) {
-            RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-            if (enemyRobots.length > 0) {
-                if (rc.canAttack(enemyRobots[0].location)) {
-                    rc.attack(enemyRobots[0].location);
-                }
+        if (total == GameConstants.CARRIER_CAPACITY){
+            //move towards HQ
+            RobotPlayer.moveTowards(rc, hqLoc);
+        }
+
+    }
+
+
+
+    static void scanHQ(RobotController rc) throws GameActionException{
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for(RobotInfo robot : robots){
+            if(robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS){
+                hqLoc = robot.getLocation();
+                break;
             }
         }
-        
-        // If we can see a well, move towards it
+    }
+    static void scanWells(RobotController rc) throws GameActionException{
         WellInfo[] wells = rc.senseNearbyWells();
-        if (wells.length > 1 && rng.nextInt(3) == 1) {
-            WellInfo well_one = wells[1];
-            Direction dir = me.directionTo(well_one.getMapLocation());
-            if (rc.canMove(dir)) 
-                rc.move(dir);
+        if (wells.length > 0) {
+            wellsLoc = wells[0].getMapLocation();
         }
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
+
+    }
+    static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
+        int amount = rc.getResourceAmount(type);
+        if (amount > 0){
+            if(rc.canTransferResource(hqLoc, type, amount)){
+                rc.transferResource(hqLoc, type, amount);
+            }
         }
+    }
+    static int getTotalResources(RobotController rc){
+        return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA);
     }
 
     /**
      * Run a single turn for a Launcher.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
-    static void runLauncher(RobotController rc) throws GameActionException {
-        // Try to attack someone
-        int radius = rc.getType().actionRadiusSquared;
-        Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        if (enemies.length >= 0) {
-            // MapLocation toAttack = enemies[0].location;
-            MapLocation toAttack = rc.getLocation().add(Direction.EAST);
+    //launchers strategy for sprint 1:
+    //Find Enemy: Locate nearby enemies.
+    //Get Enemy Data: Obtain information about these enemies.
+    //Prioritize by Type: Prioritize the enemies based on their type.
+    //Attack Enemy: Attack the prioritized enemy.
 
-            if (rc.canAttack(toAttack)) {
-                rc.setIndicatorString("Attacking");        
-                rc.attack(toAttack);
+    static void runLauncher(RobotController rc) throws GameActionException {
+        RobotInfo target = findTargetPriority(rc);
+        if (target != null && rc.canAttack(target.location)) {
+            rc.attack(target.location);
+            rc.setIndicatorString("Attacking " + target.location);
+        } else {
+            Direction dir = directions[rng.nextInt(directions.length)];
+            if (rc.canMove(dir)) {
+                rc.move(dir);
             }
         }
+    }
 
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
+    private static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
+        RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
+        if (enemies.length == 0) return null;
+
+        RobotInfo prioritizedTarget = null;
+        double highestPriority = Double.MAX_VALUE;
+        for (RobotInfo enemy : enemies) {
+            double priority = calculatePriority(enemy, rc.getLocation());
+            if (priority < highestPriority) {
+                highestPriority = priority;
+                prioritizedTarget = enemy;
+            }
+        }
+        return prioritizedTarget;
+    }
+
+    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
+        double typePriority = getTypePriority(enemy.type);
+        double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority
+        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority
+
+        return typePriority * healthFactor * distanceFactor;
+    }
+
+    private static int getTypePriority(RobotType type) {
+        switch (type) {
+            case CARRIER: return 1;
+            case AMPLIFIER: return 2;
+            case LAUNCHER: return 3;
+            default: return 10;
         }
     }
 }
