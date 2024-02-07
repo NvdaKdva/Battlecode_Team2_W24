@@ -27,6 +27,11 @@ public strictfp class RobotPlayer {
      * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
      * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
      */
+
+    /**
+     *  Global Variables
+     *  largely used for storing locations can be used across robots
+     **/
     static final Random rng = new Random(6147);
     static MapLocation hqLoc;
     static MapLocation wellLoc;
@@ -147,73 +152,18 @@ public strictfp class RobotPlayer {
     //Gather & Deposit Resources:
     //Prioritize by Goal: Claim Islands before gathering
     //Prioritize by Type: Prioritize the lowest resources first.
+
+    // SUPPORTING FUNCTIONS
     static void moveRandom(RobotController rc) throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         if (rc.canMove(dir)) rc.move(dir);
     }
+
     static void moveTowards(RobotController rc, MapLocation loc) throws GameActionException {
         Direction dir = rc.getLocation().directionTo(loc);
         if(rc.canMove(dir)) rc.move(dir);
         else moveRandom(rc);
     }
-
-    static void runCarrier(RobotController rc) throws GameActionException {
-        if (rc.getAnchor() != null) {
-            // If I have an anchor singularly focus on getting it to the first island I see
-            int[] islands = rc.senseNearbyIslands();
-            Set<MapLocation> islandLocs = new HashSet<>();
-            for (int id : islands) {
-                MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
-                islandLocs.addAll(Arrays.asList(thisIslandLocs));
-            }
-            if (islandLocs.size() > 0) {
-                MapLocation islandLocation = islandLocs.iterator().next();
-                rc.setIndicatorString("Moving my anchor towards " + islandLocation);
-                while (!rc.getLocation().equals(islandLocation)) {
-                    Direction dir = rc.getLocation().directionTo(islandLocation);
-                    if (rc.canMove(dir)) {
-                        rc.move(dir);
-                    }
-                }
-                if (rc.canPlaceAnchor()) {
-                    rc.setIndicatorString("Huzzah, placed anchor!");
-                    rc.placeAnchor();
-                }
-            }
-        }
-
-        if (hqLoc == null) scanHQ(rc);
-
-        if (wellsLoc == null) scanWells(rc);
-
-        //Collect from well if close and inventory not full
-        if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1))
-            rc.collectResource(wellsLoc, -1);
-
-        //Deposit resource to headquarter
-        depositResource(rc,ResourceType.ADAMANTIUM);
-        depositResource(rc,ResourceType.MANA);
-
-        int total = getTotalResources(rc);
-        //no resource then look for well
-        if (total == 0) {
-            if(wellsLoc !=null) {
-                MapLocation myLoc = rc.getLocation();
-                if (!myLoc.isAdjacentTo(wellsLoc))
-                    RobotPlayer.moveTowards(rc, wellsLoc);
-            }
-            else{
-                RobotPlayer.moveRandom(rc);
-            }
-        }
-        if (total == GameConstants.CARRIER_CAPACITY){
-            //move towards HQ
-            RobotPlayer.moveTowards(rc, hqLoc);
-        }
-
-    }
-
-
 
     static void scanHQ(RobotController rc) throws GameActionException{
         RobotInfo[] robots = rc.senseNearbyRobots();
@@ -224,13 +174,27 @@ public strictfp class RobotPlayer {
             }
         }
     }
+
     static void scanWells(RobotController rc) throws GameActionException{
         WellInfo[] wells = rc.senseNearbyWells();
         if (wells.length > 0) {
             wellsLoc = wells[0].getMapLocation();
         }
-
     }
+
+    static void scanIslands(RobotController rc) throws GameActionException{
+        int[] ids = rc.senseNearbyIslands();
+        for(int id : ids){
+            if(rc.senseTeamOccupyingIsland(id) == Team.NEUTRAL){
+                MapLocation[] locs = rc.senseNearbyIslandLocations(id);
+                if(locs.length > 0){
+                    islandLoc = locs[0];
+                    break;
+                }
+            }
+        }
+    }
+
     static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
         int amount = rc.getResourceAmount(type);
         if (amount > 0){
@@ -239,8 +203,50 @@ public strictfp class RobotPlayer {
             }
         }
     }
-    static int getTotalResources(RobotController rc){
+
+    static int getTotalResource(RobotController rc){
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA);
+    }
+
+    //CARRIER ALGO
+    static void runCarrier(RobotController rc) throws GameActionException {
+        if(hqLoc == null) scanHQ(rc);
+        if(wellLoc == null) scanWells(rc);
+        if(islandLoc == null) scanIslands(rc);
+        if (wellsLoc == null) scanWells(rc);
+
+        //Collect from well if close and inventory not full
+        if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1))
+            rc.collectResource(wellsLoc, -1);
+
+        //Deposit resource to headquarter
+        int total = getTotalResource(rc);
+        //TODO Don't auto depsoit, only depsoit if full
+        depositResource(rc,ResourceType.ADAMANTIUM);
+        depositResource(rc,ResourceType.MANA);
+
+        if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)){
+            rc.takeAnchor(hqLoc,Anchor.STANDARD);
+            anchorMode = true;
+        }
+        if(anchorMode){
+            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+            if(islandLoc == null) RobotPlayer.moveRandom(rc);
+            else RobotPlayer.moveTowards(rc, islandLoc);
+            if(rc.canPlaceAnchor()) rc.placeAnchor();
+        } else {
+            if (total == 0) {
+                if (wellLoc != null) {
+                    MapLocation me = rc.getLocation();
+                    if (!me.isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);
+                } else {
+                    RobotPlayer.moveRandom(rc);
+                }
+            }
+            if (total == GameConstants.CARRIER_CAPACITY) {
+                RobotPlayer.moveTowards(rc, hqLoc);
+            }
+        }
     }
 
     /**
