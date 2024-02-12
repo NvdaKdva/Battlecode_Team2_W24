@@ -78,7 +78,7 @@ public strictfp class RobotPlayer {
                     case LAUNCHER: runLauncher(rc); break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
                     case DESTABILIZER: // You might want to give them a try!
-                    case AMPLIFIER:      runAmplifier(rc); break;
+                    case AMPLIFIER:       break;
                 }
 
             } catch (GameActionException e) {
@@ -129,10 +129,6 @@ public strictfp class RobotPlayer {
             rc.setIndicatorString("Trying to build a launcher");
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
-            } else {
-                if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
-                    rc.buildRobot(RobotType.AMPLIFIER, newLoc);
-                }
             }
         }
     }
@@ -201,88 +197,6 @@ public strictfp class RobotPlayer {
             rc.move(dir);
         }
     }
-
-    //    static void runAmplifier(RobotController rc) throws GameActionException {
-//        // Scan for critical locations
-//
-//
-//        scanIslands(rc);
-//        scanHQ(rc);
-//        scanWells(rc);
-//
-//        //int abc = locationToInt(rc,islandLoc);
-//
-//
-//        moveTowards(rc, islandLoc);
-//        RobotInfo[] nearbyAmplifiers = rc.senseNearbyRobots();
-//        for(int i=0;i<nearbyAmplifiers.length;i++) {
-//            RobotInfo abc = nearbyAmplifiers[i];
-//            if (abc.getType() == RobotType.AMPLIFIER) {
-//                moveTowards(rc, wellLoc);
-//                RobotInfo[] nearbyAmplifiersWell = rc.senseNearbyRobots();
-//                for (int j = 0; i < nearbyAmplifiersWell.length; j++) {
-//                    RobotInfo abc1 = nearbyAmplifiers[j];
-//                    if (abc1.getType() == RobotType.AMPLIFIER) {
-//                        moveTowards(rc, hqLoc);
-//                    }
-//                }
-//            }
-//        }
-//
-
-    static void runAmplifier(RobotController rc) throws GameActionException {
-        // Scan for critical locations
-        scanIslands(rc);
-        scanHQ(rc);
-        scanWells(rc);
-
-        // Move towards island
-        if (islandLoc != null) {
-            moveTowards(rc, islandLoc);
-        }
-        // Scan for nearby amplifiers
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        for (RobotInfo robot : nearbyRobots) {
-            if (robot.getType() == RobotType.AMPLIFIER) {
-                // Move towards the well if found nearby
-                if (wellLoc != null) {
-                    moveTowards(rc, wellLoc);
-                }
-                // Move towards HQ if another amplifier is found near the well
-                if (hqLoc != null) {
-                    moveTowards(rc, hqLoc);
-                }
-            }
-        }
-    }
-//static void runAmplifier(RobotController rc) throws GameActionException {
-//    // Scan for critical locations
-//    scanIslands(rc);
-//    scanHQ(rc);
-//    scanWells(rc);
-//
-//    // Move towards island
-//    if (islandLoc != null) {
-//        moveTowards(rc, islandLoc);
-//    }
-//
-//    // Scan for nearby amplifiers
-//    RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-//    for (RobotInfo robot : nearbyRobots) {
-//        if (robot.getType() == RobotType.AMPLIFIER) {
-//            // Move towards the well if found nearby
-//            if (wellLoc != null && rc.canSenseLocation(wellLoc) && rc.isLocationOccupied(wellLoc)) {
-//                moveTowards(rc, wellLoc);
-//            } else {
-//                // Move towards HQ if another amplifier is found near the well
-//                if (hqLoc != null) {
-//                    moveTowards(rc, hqLoc);
-//                }
-//            }
-//        }
-//    }
-//}
-
     static void scanIslands(RobotController rc) throws GameActionException{
         int[] ids = rc.senseNearbyIslands();
         for(int id : ids){
