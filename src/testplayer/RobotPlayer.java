@@ -20,7 +20,9 @@ public strictfp class RobotPlayer {
      * these variables are static, in Battlecode they aren't actually shared between your robots.
      */
     static int turnCount = 0;
-
+    static final int MAX_INITIAL_LAUNCHERS = 20;
+    static final int MIN_MAINTAIN_LAUNCHERS = 10;
+    static int estimatedLauncherCount = 0;
     /**
      * A random number generator.
      * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
@@ -31,14 +33,14 @@ public strictfp class RobotPlayer {
 
     /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
-        Direction.NORTH,
-        Direction.NORTHEAST,
-        Direction.EAST,
-        Direction.SOUTHEAST,
-        Direction.SOUTH,
-        Direction.SOUTHWEST,
-        Direction.WEST,
-        Direction.NORTHWEST,
+            Direction.NORTH,
+            Direction.NORTHEAST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH,
+            Direction.SOUTHWEST,
+            Direction.WEST,
+            Direction.NORTHWEST,
     };
 
     /**
@@ -54,7 +56,6 @@ public strictfp class RobotPlayer {
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
         System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
-
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
 
@@ -102,12 +103,13 @@ public strictfp class RobotPlayer {
 
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
     }
-
     /**
      * Run a single turn for a Headquarters.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
+
     static void runHeadquarters(RobotController rc) throws GameActionException {
+        System.out.println("HQ: Attempting to spawn Launcher, total attempts: " + estimatedLauncherCount);
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
@@ -127,6 +129,17 @@ public strictfp class RobotPlayer {
             rc.setIndicatorString("Trying to build a launcher");
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
+            }
+        }
+        if (estimatedLauncherCount < MAX_INITIAL_LAUNCHERS || (rc.getRoundNum() % 10 == 0 && estimatedLauncherCount <= MAX_INITIAL_LAUNCHERS - MIN_MAINTAIN_LAUNCHERS)) {
+            // Additional debugging print statement before attempting to spawn
+            System.out.println("HQ: Attempting to spawn Launcher, total attempts: " + estimatedLauncherCount);
+            Direction direct = directions[rng.nextInt(directions.length)];
+            MapLocation newLocation = rc.getLocation().add(direct);
+            if (rc.canBuildRobot(RobotType.LAUNCHER, newLocation)) {
+                rc.buildRobot(RobotType.LAUNCHER, newLocation);
+                estimatedLauncherCount++; // Note: This count will not decrease when launchers are destroyed.
+                System.out.println("HQ: Spawning Launcher, new estimated count: " + estimatedLauncherCount);
             }
         }
     }
@@ -167,10 +180,10 @@ public strictfp class RobotPlayer {
                 if (rc.canCollectResource(wellLocation, -1)) {
                     if (rng.nextBoolean()) {
                         rc.collectResource(wellLocation, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" + 
-                            rc.getResourceAmount(ResourceType.ADAMANTIUM) + 
-                            " MN: " + rc.getResourceAmount(ResourceType.MANA) + 
-                            " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
+                        rc.setIndicatorString("Collecting, now have, AD:" +
+                                rc.getResourceAmount(ResourceType.ADAMANTIUM) +
+                                " MN: " + rc.getResourceAmount(ResourceType.MANA) +
+                                " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
                     }
                 }
             }
@@ -184,13 +197,13 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-        
+
         // If we can see a well, move towards it
         WellInfo[] wells = rc.senseNearbyWells();
         if (wells.length > 1 && rng.nextInt(3) == 1) {
             WellInfo well_one = wells[1];
             Direction dir = me.directionTo(well_one.getMapLocation());
-            if (rc.canMove(dir)) 
+            if (rc.canMove(dir))
                 rc.move(dir);
         }
         // Also try to move randomly.
@@ -280,6 +293,7 @@ public strictfp class RobotPlayer {
         }
     }
 */
+
 
 
 
