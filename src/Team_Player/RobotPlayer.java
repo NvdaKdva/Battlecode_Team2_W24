@@ -175,6 +175,17 @@ public strictfp class RobotPlayer {
     static void moveTowards(RobotController rc, MapLocation loc) throws GameActionException {
         Direction dir = rc.getLocation().directionTo(loc);
         if(rc.canMove(dir)) rc.move(dir);
+        else moveNextBest(rc, dir);
+    }
+
+    /** If robot can not move in the best direction tries the next in the direction array,
+     *  then the one before in direction array before moving in random direction.
+     */
+    static void moveNextBest(RobotController rc, Direction dir1) throws GameActionException {
+        Direction dir2 = directions[(Arrays.binarySearch(directions,dir1) + 1) % directions.length];
+        Direction dir3 = directions[(Arrays.binarySearch(directions,dir1) + directions.length - 1) % directions.length];
+        if(rc.canMove(dir2)) rc.move(dir2);
+        else if(rc.canMove(dir3)) rc.move(dir3);
         else moveRandom(rc);
     }
 
@@ -226,7 +237,7 @@ public strictfp class RobotPlayer {
         if(hqLoc == null) scanHQ(rc);
         if(wellLoc == null) scanWells(rc);
         if(islandLoc == null) scanIslands(rc);
-        if (wellsLoc == null) scanWells(rc);
+        if(wellsLoc == null) scanWells(rc);
 
         //Collect from well if close and inventory not full
         if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1))
