@@ -84,23 +84,24 @@ public strictfp class RobotPlayer {
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
                 switch (rc.getType()) {
-                    case HEADQUARTERS:     runHeadquarters(rc);  break;
-                    case CARRIER:      runCarrier(rc);   break;
-                    case LAUNCHER: runLauncher(rc); break;
-                    case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
-                    case DESTABILIZER: // You might want to give them a try!
-                    case AMPLIFIER:    runAmplifier(rc);   break;
+                    case HEADQUARTERS:  runHeadquarters(rc);    break;
+                    case CARRIER:       runCarrier(rc);         break;
+                    case LAUNCHER:      runLauncher(rc);        break;
+// 'Examplefuncsplayer' doesn't use any of these robot types below. You might want to give them a try!
+                    case BOOSTER:
+                    case DESTABILIZER:
+                    case AMPLIFIER:     runAmplifier(rc);       break;
                 }
 
             } catch (GameActionException e) {
-                // Oh no! It looks like we did something illegal in the Battlecode world. You should
+                // Oh-no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
                 // world. Remember, uncaught exceptions cause your robot to explode!
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
 
             } catch (Exception e) {
-                // Oh no! It looks like our code tried to do something bad. This isn't a
+                // Oh-no! It looks like our code tried to do something bad. This isn't a
                 // GameActionException, so it's more likely to be a bug in our code.
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
@@ -156,13 +157,13 @@ public strictfp class RobotPlayer {
     }
     static void runAmplifier(RobotController rc) throws GameActionException {
         // Scan for critical locations
-        scanIslands(rc);
-        scanHQ(rc);
-        scanWells(rc);
+        islandLoc = Movement.scanIslands(rc);
+        hqLoc = Movement.scanHQ(rc);
+        Movement.scanWells(rc);
 
         // Move towards island
         if (islandLoc != null) {
-            moveTowards(rc, islandLoc);
+            Movement.moveTowards(rc, islandLoc);
         }
         // Scan for nearby amplifiers
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
@@ -170,11 +171,11 @@ public strictfp class RobotPlayer {
             if (robot.getType() == RobotType.AMPLIFIER) {
                 // Move towards the well if found nearby
                 if (wellLoc != null) {
-                    moveTowards(rc, wellLoc);
+                    Movement.moveTowards(rc, wellLoc);
                 }
                 // Move towards HQ if another amplifier is found near the well
                 if (hqLoc != null) {
-                    moveTowards(rc, hqLoc);
+                    Movement.moveTowards(rc, hqLoc);
                 }
             }
         }
@@ -184,54 +185,6 @@ public strictfp class RobotPlayer {
      * Run a single turn for a Carrier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
-    //carriers strategy for sprint 1:
-    //Get & Place and Anchor
-    //Get Resource Data: Obtain information about these enemies.
-    //Gather & Deposit Resources:
-    //Prioritize by Goal: Claim Islands before gathering
-    //Prioritize by Type: Prioritize the lowest resources first.
-
-    // SUPPORTING FUNCTIONS
-    static void moveRandom(RobotController rc) throws GameActionException {
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) rc.move(dir);
-    }
-
-    static void moveTowards(RobotController rc, MapLocation loc) throws GameActionException {
-        Direction dir = rc.getLocation().directionTo(loc);
-        if(rc.canMove(dir)) rc.move(dir);
-        else moveRandom(rc);
-    }
-
-    static void scanHQ(RobotController rc) throws GameActionException{
-        RobotInfo[] robots = rc.senseNearbyRobots();
-        for(RobotInfo robot : robots){
-            if(robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS){
-                hqLoc = robot.getLocation();
-                break;
-            }
-        }
-    }
-
-    static void scanWells(RobotController rc) throws GameActionException{
-        WellInfo[] wells = rc.senseNearbyWells();
-        if (wells.length > 0) {
-            wellsLoc = wells[0].getMapLocation();
-        }
-    }
-
-    static void scanIslands(RobotController rc) throws GameActionException{
-        int[] ids = rc.senseNearbyIslands();
-        for(int id : ids){
-            if(rc.senseTeamOccupyingIsland(id) == Team.NEUTRAL){
-                MapLocation[] locs = rc.senseNearbyIslandLocations(id);
-                if(locs.length > 0){
-                    islandLoc = locs[0];
-                    break;
-                }
-            }
-        }
-    }
 
     static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
         int amount = rc.getResourceAmount(type);
@@ -248,18 +201,17 @@ public strictfp class RobotPlayer {
 
     //CARRIER ALGO
     static void runCarrier(RobotController rc) throws GameActionException {
-        if(hqLoc == null) scanHQ(rc);
-        if(wellLoc == null) scanWells(rc);
-        if(islandLoc == null) scanIslands(rc);
-        if(wellsLoc == null) scanWells(rc);
+        if(hqLoc == null) hqLoc = Movement.scanHQ(rc);
+        if(wellLoc == null) wellLoc = Movement.scanWells(rc);
+        if(islandLoc == null) islandLoc = Movement.scanIslands(rc);
+        //if(wellsLoc == null) Movement.scanWells(rc);
 
         //Collect from well if close and inventory not full
-        if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1))
-            rc.collectResource(wellsLoc, -1);
+        if (wellLoc != null && rc.canCollectResource(wellLoc, -1))
+            rc.collectResource(wellLoc, -1);
 
         //Deposit resource to headquarter
         int total = getTotalResource(rc);
-        //TODO Don't auto deposit, only deposit if full
         depositResource(rc,ResourceType.ADAMANTIUM);
         depositResource(rc,ResourceType.MANA);
 
@@ -269,20 +221,20 @@ public strictfp class RobotPlayer {
         }
         if(anchorMode){
             rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-            if(islandLoc == null) RobotPlayer.moveRandom(rc);
-            else RobotPlayer.moveTowards(rc, islandLoc);
+            if(islandLoc == null) Movement.moveRandom(rc);
+            else Movement.moveTowards(rc, islandLoc);
             if(rc.canPlaceAnchor()) rc.placeAnchor();
         } else {
             if (total == 0) {
                 if (wellLoc != null) {
                     MapLocation me = rc.getLocation();
-                    if (!me.isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);
+                    if (!me.isAdjacentTo(wellLoc)) Movement.moveTowards(rc, wellLoc);
                 } else {
-                    RobotPlayer.moveRandom(rc);
+                    Movement.moveRandom(rc);
                 }
             }
             if (total == GameConstants.CARRIER_CAPACITY) {
-                RobotPlayer.moveTowards(rc, hqLoc);
+                Movement.moveTowards(rc, hqLoc);
             }
         }
     }
