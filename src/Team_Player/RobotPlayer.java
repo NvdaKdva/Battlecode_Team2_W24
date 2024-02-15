@@ -175,17 +175,6 @@ public strictfp class RobotPlayer {
     static void moveTowards(RobotController rc, MapLocation loc) throws GameActionException {
         Direction dir = rc.getLocation().directionTo(loc);
         if(rc.canMove(dir)) rc.move(dir);
-        else moveNextBest(rc, dir);
-    }
-
-    /** If robot can not move in the best direction tries the next in the direction array,
-     *  then the one before in direction array before moving in random direction.
-     */
-    static void moveNextBest(RobotController rc, Direction dir1) throws GameActionException {
-        Direction dir2 = directions[(Arrays.binarySearch(directions,dir1) + 1) % directions.length];
-        Direction dir3 = directions[(Arrays.binarySearch(directions,dir1) + directions.length - 1) % directions.length];
-        if(rc.canMove(dir2)) rc.move(dir2);
-        else if(rc.canMove(dir3)) rc.move(dir3);
         else moveRandom(rc);
     }
 
@@ -245,7 +234,7 @@ public strictfp class RobotPlayer {
 
         //Deposit resource to headquarter
         int total = getTotalResource(rc);
-        //TODO Don't auto depsoit, only depsoit if full
+        //TODO Don't auto deposit, only deposit if full
         depositResource(rc,ResourceType.ADAMANTIUM);
         depositResource(rc,ResourceType.MANA);
 
