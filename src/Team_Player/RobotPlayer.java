@@ -128,7 +128,7 @@ public strictfp class RobotPlayer {
         if (rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+            rc.setIndicatorString("Building a Standard anchor! ");
         }
         if (rng.nextBoolean()) {
             // Let's try to build a carrier.
