@@ -89,7 +89,7 @@ public strictfp class RobotPlayer {
                     case LAUNCHER: runLauncher(rc); break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
                     case DESTABILIZER: // You might want to give them a try!
-                    case AMPLIFIER:       break;
+                    case AMPLIFIER:    runAmplifier(rc);   break;
                 }
 
             } catch (GameActionException e) {
@@ -151,6 +151,31 @@ public strictfp class RobotPlayer {
                 rc.buildRobot(RobotType.LAUNCHER, newLocation);
                 estimatedLauncherCount++; // Note: This count will not decrease when launchers are destroyed.
                 System.out.println("HQ: Spawning Launcher, new estimated count: " + estimatedLauncherCount);
+            }
+        }
+    }
+    static void runAmplifier(RobotController rc) throws GameActionException {
+        // Scan for critical locations
+        scanIslands(rc);
+        scanHQ(rc);
+        scanWells(rc);
+
+        // Move towards island
+        if (islandLoc != null) {
+            moveTowards(rc, islandLoc);
+        }
+        // Scan for nearby amplifiers
+        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+        for (RobotInfo robot : nearbyRobots) {
+            if (robot.getType() == RobotType.AMPLIFIER) {
+                // Move towards the well if found nearby
+                if (wellLoc != null) {
+                    moveTowards(rc, wellLoc);
+                }
+                // Move towards HQ if another amplifier is found near the well
+                if (hqLoc != null) {
+                    moveTowards(rc, hqLoc);
+                }
             }
         }
     }
