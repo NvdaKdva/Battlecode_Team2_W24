@@ -20,4 +20,17 @@ public class Carriers {
             Direction.NORTHWEST,
     };
 
+
+    static void depositResource(RobotController rc, ResourceType type, MapLocation hqLoc) throws GameActionException {
+        int amount = rc.getResourceAmount(type);
+        if (amount > 0){
+            if(rc.canTransferResource(hqLoc, type, amount)){
+                rc.transferResource(hqLoc, type, amount);
+            }
+        }
+    }
+
+    static int getTotalResource(RobotController rc){
+        return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA);
+    }
 }

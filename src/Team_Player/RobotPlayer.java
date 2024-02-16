@@ -9,37 +9,34 @@ import java.util.Set;
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.
- * The run() method inside this class is like your main function: this is what we'll call once your robot
- * is created!
+ * The run() method inside this class is like your main function:
+ * this is what we'll call once your robot is created!
  */
 public strictfp class RobotPlayer {
 
     /**
-     * We will use this variable to count the number of turns this robot has been alive.
-     * You can use static variables like this to save any information you want. Keep in mind that even though
-     * these variables are static, in Battlecode they aren't actually shared between your robots.
-     */
-    static int turnCount = 0;
+     *  Global Variables
+     *  Can be used across robots BUT ARE UNIQUE per robot
+     **/
+    static MapLocation hqLoc;
+    static MapLocation wellLoc;
+    static MapLocation islandLoc;
+    static boolean anchorMode = false;
     static final int MAX_INITIAL_LAUNCHERS = 20;
     static final int MIN_MAINTAIN_LAUNCHERS = 10;
     static int estimatedLauncherCount = 0;
-    /**
-     * A random number generator.
-     * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
-     * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
-     * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
+    /* A random number generator.
+     * Use this RNG to make some random moves.*seed* the with (6147);
+     * this makes sure we get the same sequence of numbers every time this code is run.
+     * This is very useful for debugging!
      */
-
-    /**
-     *  Global Variables
-     *  largely used for storing locations can be used across robots
-     **/
     static final Random rng = new Random(6147);
-    static MapLocation hqLoc;
-    static MapLocation wellLoc;
-    static MapLocation wellsLoc;
-    static MapLocation islandLoc;
-    static boolean anchorMode = false;
+    /* Use this variable to count the number of turns this robot has been alive.
+     * You can use static variables like this to save any information you want.
+     * Keep in mind that even though these variables are static,
+     * in Battlecode they aren't actually shared between your robots.
+     */
+    static int turnCount = 0;
 
     /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
@@ -155,51 +152,11 @@ public strictfp class RobotPlayer {
             }
         }
     }
-    static void runAmplifier(RobotController rc) throws GameActionException {
-        // Scan for critical locations
-        islandLoc = Movement.scanIslands(rc);
-        hqLoc = Movement.scanHQ(rc);
-        Movement.scanWells(rc);
-
-        // Move towards island
-        if (islandLoc != null) {
-            Movement.moveTowards(rc, islandLoc);
-        }
-        // Scan for nearby amplifiers
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        for (RobotInfo robot : nearbyRobots) {
-            if (robot.getType() == RobotType.AMPLIFIER) {
-                // Move towards the well if found nearby
-                if (wellLoc != null) {
-                    Movement.moveTowards(rc, wellLoc);
-                }
-                // Move towards HQ if another amplifier is found near the well
-                if (hqLoc != null) {
-                    Movement.moveTowards(rc, hqLoc);
-                }
-            }
-        }
-    }
 
     /**
      * Run a single turn for a Carrier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
-
-    static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
-        int amount = rc.getResourceAmount(type);
-        if (amount > 0){
-            if(rc.canTransferResource(hqLoc, type, amount)){
-                rc.transferResource(hqLoc, type, amount);
-            }
-        }
-    }
-
-    static int getTotalResource(RobotController rc){
-        return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA);
-    }
-
-    //CARRIER ALGO
     static void runCarrier(RobotController rc) throws GameActionException {
         if(hqLoc == null) hqLoc = Movement.scanHQ(rc);
         if(wellLoc == null) wellLoc = Movement.scanWells(rc);
@@ -211,9 +168,9 @@ public strictfp class RobotPlayer {
             rc.collectResource(wellLoc, -1);
 
         //Deposit resource to headquarter
-        int total = getTotalResource(rc);
-        depositResource(rc,ResourceType.ADAMANTIUM);
-        depositResource(rc,ResourceType.MANA);
+        int total = Carriers.getTotalResource(rc);
+        Carriers.depositResource(rc,ResourceType.ADAMANTIUM, hqLoc);
+        Carriers.depositResource(rc,ResourceType.MANA, hqLoc);
 
         if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)){
             rc.takeAnchor(hqLoc,Anchor.STANDARD);
@@ -243,14 +200,8 @@ public strictfp class RobotPlayer {
      * Run a single turn for a Launcher.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
-    //launchers strategy for sprint 1:
-    //Find Enemy: Locate nearby enemies.
-    //Get Enemy Data: Obtain information about these enemies.
-    //Prioritize by Type: Prioritize the enemies based on their type.
-    //Attack Enemy: Attack the prioritized enemy.
-
     static void runLauncher(RobotController rc) throws GameActionException {
-        RobotInfo target = findTargetPriority(rc);
+        RobotInfo target = Launchers.findTargetPriority(rc);
         if (target != null && rc.canAttack(target.location)) {
             rc.attack(target.location);
             rc.setIndicatorString("Attacking " + target.location);
@@ -262,36 +213,34 @@ public strictfp class RobotPlayer {
         }
     }
 
-    private static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
-        RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
-        if (enemies.length == 0) return null;
+    /**
+     * Run a single turn for an Amplifier.
+     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
+     */
+    static void runAmplifier(RobotController rc) throws GameActionException {
+        // Scan for critical locations
+        islandLoc = Movement.scanIslands(rc);
+        hqLoc = Movement.scanHQ(rc);
+        Movement.scanWells(rc);
 
-        RobotInfo prioritizedTarget = null;
-        double highestPriority = Double.MAX_VALUE;
-        for (RobotInfo enemy : enemies) {
-            double priority = calculatePriority(enemy, rc.getLocation());
-            if (priority < highestPriority) {
-                highestPriority = priority;
-                prioritizedTarget = enemy;
+        // Move towards island
+        if (islandLoc != null) {
+            Movement.moveTowards(rc, islandLoc);
+        }
+        // Scan for nearby amplifiers
+        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+        for (RobotInfo robot : nearbyRobots) {
+            if (robot.getType() == RobotType.AMPLIFIER) {
+                // Move towards the well if found nearby
+                if (wellLoc != null) {
+                    Movement.moveTowards(rc, wellLoc);
+                }
+                // Move towards HQ if another amplifier is found near the well
+                if (hqLoc != null) {
+                    Movement.moveTowards(rc, hqLoc);
+                }
             }
         }
-        return prioritizedTarget;
     }
 
-    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
-        double typePriority = getTypePriority(enemy.type);
-        double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority
-        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority
-
-        return typePriority * healthFactor * distanceFactor;
-    }
-
-    private static int getTypePriority(RobotType type) {
-        switch (type) {
-            case CARRIER: return 1;
-            case AMPLIFIER: return 2;
-            case LAUNCHER: return 3;
-            default: return 10;
-        }
-    }
 }
