@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+import static battlecode.common.RobotType.HEADQUARTERS;
+
 /**
  * RobotPlayer is the class that describes your main robot strategy.
  * The run() method inside this class is like your main function: this is what we'll call once your robot
@@ -20,9 +22,15 @@ public strictfp class RobotPlayer {
      * these variables are static, in Battlecode they aren't actually shared between your robots.
      */
     static int turnCount = 0;
-    static final int MAX_INITIAL_LAUNCHERS = 20;
-    static final int MIN_MAINTAIN_LAUNCHERS = 10;
-    static int estimatedLauncherCount = 0;
+    static final int MAX_INITIAL_LAUNCHERS = 20; //todo consider removal
+    static final int MIN_MAINTAIN_LAUNCHERS = 10; //todo consider removal
+    static int atkEnemyHQ = 0;
+    static int maxAtkEnemyHQ = 100;
+    static int estLauncherCount = 0;
+    static int estAmplifierCount = 0;
+    static int maxAmpLim = 0;
+
+
     /**
      * A random number generator.
      * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
@@ -124,36 +132,46 @@ public strictfp class RobotPlayer {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
-        if (rc.canBuildAnchor(Anchor.STANDARD)) {
-            // If we can build an anchor do it!
+
+        //Only makes Standard Anchors and if after round 150
+        if (rc.getRoundNum() > 150 && rc.canBuildAnchor(Anchor.STANDARD)) {
             rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+            rc.setIndicatorString("Building Standard anchor!");
         }
-        if (rng.nextBoolean()) {
-            // Let's try to build a carrier.
+        //Makes Carrier right away and every x rounds (x=3)
+        // provided not making a launcher every y rounds (y=5)
+        if (rc.getRoundNum() == 0 || rc.getRoundNum() % 5 != 0 && rc.getRoundNum() % 3 == 0) {
             rc.setIndicatorString("Trying to build a carrier");
             if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                 rc.buildRobot(RobotType.CARRIER, newLoc);
             }
-        } else {
-            // Let's try to build a launcher.
-            rc.setIndicatorString("Trying to build a launcher");
+        }
+/* old generation line, kept for reference
+ * if (estimatedLauncherCount < MAX_INITIAL_LAUNCHERS || (rc.getRoundNum() % 10 == 0 && estimatedLauncherCount <= MAX_INITIAL_LAUNCHERS - MIN_MAINTAIN_LAUNCHERS)) {
+ *
+ * atkEnemyHQ < maxAtkEnemyHQ &&
+ */
+        //Makes Launcher every x rounds (x=5)
+        if (rc.getRoundNum() % 7 == 0) {
+            // Additional debugging print statement before attempting to spawn
+            rc.setIndicatorString("Trying to build a launcher, " + estLauncherCount + " build so far.");
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                estLauncherCount++; // Note: This count will not decrease when launchers are destroyed.
             }
         }
-        if (estimatedLauncherCount < MAX_INITIAL_LAUNCHERS || (rc.getRoundNum() % 10 == 0 && estimatedLauncherCount <= MAX_INITIAL_LAUNCHERS - MIN_MAINTAIN_LAUNCHERS)) {
-            // Additional debugging print statement before attempting to spawn
-            System.out.println("HQ: Attempting to spawn Launcher, total attempts: " + estimatedLauncherCount);
-            Direction direct = directions[rng.nextInt(directions.length)];
-            MapLocation newLocation = rc.getLocation().add(direct);
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLocation)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLocation);
-                estimatedLauncherCount++; // Note: This count will not decrease when launchers are destroyed.
-                System.out.println("HQ: Spawning Launcher, new estimated count: " + estimatedLauncherCount);
+        //Determines ideal number of launchers (grid mult / 360 - 1)
+        if(turnCount == 0) { maxAmpLim = rc.getMapHeight() * rc.getMapWidth() / 360 - 1; }
+        //Makes Amplifiers every 5 rounds after 50 rnds up to max Amp limit
+        if (rc.getRoundNum() > 50 && rc.getRoundNum() % 5 == 0 && estAmplifierCount < maxAmpLim) {
+            rc.setIndicatorString("Trying to build an amplifier");
+            if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
+                rc.buildRobot(RobotType.AMPLIFIER, newLoc);
+                estAmplifierCount++;// Note: This count will not decrease when amplifiers are destroyed.
             }
         }
     }
+
     static void runAmplifier(RobotController rc) throws GameActionException {
         // Scan for critical locations
         scanIslands(rc);
@@ -206,7 +224,7 @@ public strictfp class RobotPlayer {
     static void scanHQ(RobotController rc) throws GameActionException{
         RobotInfo[] robots = rc.senseNearbyRobots();
         for(RobotInfo robot : robots){
-            if(robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS){
+            if(robot.getTeam() == rc.getTeam() && robot.getType() == HEADQUARTERS){
                 hqLoc = robot.getLocation();
                 break;
             }
