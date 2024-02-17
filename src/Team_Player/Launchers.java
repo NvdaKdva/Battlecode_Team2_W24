@@ -19,6 +19,26 @@ public class Launchers {
             Direction.NORTHWEST,
     };
 
+    /**
+     * Run a single turn for a Launcher.
+     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
+     */
+    static void runLauncher(RobotController rc) throws GameActionException {
+        RobotInfo target = Launchers.findTargetPriority(rc);
+        if (target != null && rc.canAttack(target.location)) {
+            rc.attack(target.location);
+            rc.setIndicatorString("Attacking " + target.location);
+        } else {
+            Direction dir = directions[rng.nextInt(directions.length)];
+            if (rc.canMove(dir)) {
+                rc.move(dir);
+            }
+        }
+    }
+
+    /**
+     * Support Functions
+     */
     public static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
         double typePriority = getTypePriority(enemy.type);
         double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority

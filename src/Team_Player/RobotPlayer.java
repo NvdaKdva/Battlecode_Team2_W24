@@ -18,13 +18,14 @@ public strictfp class RobotPlayer {
      *  Global Variables
      *  Can be used across robots BUT ARE UNIQUE per robot
      **/
-    static MapLocation hqLoc;
-    static MapLocation wellLoc;
-    static MapLocation islandLoc;
-    static boolean anchorMode = false;
-    static final int MAX_INITIAL_LAUNCHERS = 20;
-    static final int MIN_MAINTAIN_LAUNCHERS = 10;
-    static int estimatedLauncherCount = 0;
+    static MapLocation hqLoc; //TODO remove?
+    static MapLocation wellLoc; //TODO remove?
+    static MapLocation islandLoc; //TODO remove?
+    static boolean anchorMode = false; //TODO remove?
+    static final int MAX_INITIAL_LAUNCHERS = 20; //TODO remove?
+    static final int MIN_MAINTAIN_LAUNCHERS = 10; //TODO remove?
+    static int estimatedLauncherCount = 0; //TODO remove?
+
     /* A random number generator.
      * Use this RNG to make some random moves.*seed* the with (6147);
      * this makes sure we get the same sequence of numbers every time this code is run.
@@ -81,13 +82,13 @@ public strictfp class RobotPlayer {
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
                 switch (rc.getType()) {
-                    case HEADQUARTERS:  runHeadquarters(rc);    break;
-                    case CARRIER:       runCarrier(rc);         break;
-                    case LAUNCHER:      runLauncher(rc);        break;
+                    case HEADQUARTERS:  Headquarters.runHeadquarters(rc);   break;
+                    case CARRIER:       Carriers.runCarrier(rc);            break;
+                    case LAUNCHER:      Launchers.runLauncher(rc);          break;
 // 'Examplefuncsplayer' doesn't use any of these robot types below. You might want to give them a try!
                     case BOOSTER:
                     case DESTABILIZER:
-                    case AMPLIFIER:     runAmplifier(rc);       break;
+                    case AMPLIFIER:     Amplifiers.runAmplifier(rc);        break;
                 }
 
             } catch (GameActionException e) {
@@ -114,133 +115,5 @@ public strictfp class RobotPlayer {
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
     }
 
-    /**
-     * Run a single turn for a Headquarters.
-     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
-     */
-    static void runHeadquarters(RobotController rc) throws GameActionException {
-        // Pick a direction to build in.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation newLoc = rc.getLocation().add(dir);
-        if (rc.canBuildAnchor(Anchor.STANDARD)) {
-            // If we can build an anchor do it!
-            rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building a Standard anchor! ");
-        }
-        if (rng.nextBoolean()) {
-            // Let's try to build a carrier.
-            rc.setIndicatorString("Trying to build a carrier");
-            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                rc.buildRobot(RobotType.CARRIER, newLoc);
-            }
-        } else {
-            // Let's try to build a launcher.
-            rc.setIndicatorString("Trying to build a launcher");
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
-            }
-        }
-        if (estimatedLauncherCount < MAX_INITIAL_LAUNCHERS || (rc.getRoundNum() % 10 == 0 && estimatedLauncherCount <= MAX_INITIAL_LAUNCHERS - MIN_MAINTAIN_LAUNCHERS)) {
-            // Additional debugging print statement before attempting to spawn
-            System.out.println("HQ: Attempting to spawn Launcher, total attempts: " + estimatedLauncherCount);
-            Direction direct = directions[rng.nextInt(directions.length)];
-            MapLocation newLocation = rc.getLocation().add(direct);
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLocation)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLocation);
-                estimatedLauncherCount++; // Note: This count will not decrease when launchers are destroyed.
-                System.out.println("HQ: Spawning Launcher, new estimated count: " + estimatedLauncherCount);
-            }
-        }
-    }
-
-    /**
-     * Run a single turn for a Carrier.
-     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
-     */
-    static void runCarrier(RobotController rc) throws GameActionException {
-        if(hqLoc == null) hqLoc = Movement.scanHQ(rc);
-        if(wellLoc == null) wellLoc = Movement.scanWells(rc);
-        if(islandLoc == null) islandLoc = Movement.scanIslands(rc);
-        //if(wellsLoc == null) Movement.scanWells(rc);
-
-        //Collect from well if close and inventory not full
-        if (wellLoc != null && rc.canCollectResource(wellLoc, -1))
-            rc.collectResource(wellLoc, -1);
-
-        //Deposit resource to headquarter
-        int total = Carriers.getTotalResource(rc);
-        Carriers.depositResource(rc,ResourceType.ADAMANTIUM, hqLoc);
-        Carriers.depositResource(rc,ResourceType.MANA, hqLoc);
-
-        if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)){
-            rc.takeAnchor(hqLoc,Anchor.STANDARD);
-            anchorMode = true;
-        }
-        if(anchorMode){
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-            if(islandLoc == null) Movement.moveRandom(rc);
-            else Movement.moveTowards(rc, islandLoc);
-            if(rc.canPlaceAnchor()) rc.placeAnchor();
-        } else {
-            if (total == 0) {
-                if (wellLoc != null) {
-                    MapLocation me = rc.getLocation();
-                    if (!me.isAdjacentTo(wellLoc)) Movement.moveTowards(rc, wellLoc);
-                } else {
-                    Movement.moveRandom(rc);
-                }
-            }
-            if (total == GameConstants.CARRIER_CAPACITY) {
-                Movement.moveTowards(rc, hqLoc);
-            }
-        }
-    }
-
-    /**
-     * Run a single turn for a Launcher.
-     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
-     */
-    static void runLauncher(RobotController rc) throws GameActionException {
-        RobotInfo target = Launchers.findTargetPriority(rc);
-        if (target != null && rc.canAttack(target.location)) {
-            rc.attack(target.location);
-            rc.setIndicatorString("Attacking " + target.location);
-        } else {
-            Direction dir = directions[rng.nextInt(directions.length)];
-            if (rc.canMove(dir)) {
-                rc.move(dir);
-            }
-        }
-    }
-
-    /**
-     * Run a single turn for an Amplifier.
-     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
-     */
-    static void runAmplifier(RobotController rc) throws GameActionException {
-        // Scan for critical locations
-        islandLoc = Movement.scanIslands(rc);
-        hqLoc = Movement.scanHQ(rc);
-        Movement.scanWells(rc);
-
-        // Move towards island
-        if (islandLoc != null) {
-            Movement.moveTowards(rc, islandLoc);
-        }
-        // Scan for nearby amplifiers
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        for (RobotInfo robot : nearbyRobots) {
-            if (robot.getType() == RobotType.AMPLIFIER) {
-                // Move towards the well if found nearby
-                if (wellLoc != null) {
-                    Movement.moveTowards(rc, wellLoc);
-                }
-                // Move towards HQ if another amplifier is found near the well
-                if (hqLoc != null) {
-                    Movement.moveTowards(rc, hqLoc);
-                }
-            }
-        }
-    }
 
 }
