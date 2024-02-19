@@ -43,7 +43,8 @@ public strictfp class RobotPlayer {
             Direction.NORTHWEST,
     };
     static RobotController rc;
-
+    static final int EARLY_GAME_END = 500;
+    static final int MID_GAME_END = 1500;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -219,27 +220,27 @@ public strictfp class RobotPlayer {
     //Prioritize by Type: Prioritize the enemies based on their type.
     //Attack Enemy: Attack the prioritized enemy.
     static void runLauncher(RobotController rc) throws GameActionException {
-        RobotInfo target = findAdaptiveTarget();
+        RobotInfo target = findTargetPriority(rc);
         if (target != null && rc.canAttack(target.location)) {
             rc.attack(target.location);
+            rc.setIndicatorString("Attacking " + target.location);
         } else {
-            // No valid target, try to move towards strategic location or randomly
-            Direction moveDir = directions[rng.nextInt(directions.length)];
-            if (rc.canMove(moveDir)) {
-                rc.move(moveDir);
+            Direction dir = directions[rng.nextInt(directions.length)];
+            if (rc.canMove(dir)) {
+                rc.move(dir);
             }
         }
     }
 
-    static RobotInfo findAdaptiveTarget() throws GameActionException {
+    private static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
         RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
         if (enemies.length == 0) return null;
-        int currentRound = rc.getRoundNum();
+
         RobotInfo prioritizedTarget = null;
-        double highestPriority = 0;
+        double highestPriority = Double.MAX_VALUE;
         for (RobotInfo enemy : enemies) {
-            double priority = getAdaptiveTargetPriority(enemy, currentRound);
-            if (priority > highestPriority) {
+            double priority = calculatePriority(enemy, rc.getLocation(), rc.getRoundNum());
+            if (priority < highestPriority) {
                 highestPriority = priority;
                 prioritizedTarget = enemy;
             }
@@ -247,25 +248,44 @@ public strictfp class RobotPlayer {
         return prioritizedTarget;
     }
 
-    static double getAdaptiveTargetPriority(RobotInfo enemy, int currentRound) {
-        final int EARLY_GAME_END = 500;
-        final int MID_GAME_END = 1500;
+    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation, int currentRound) {
+        double typePriority = getTypePriority(enemy.type, currentRound);
+        double healthFactor = 1.0 / (enemy.health + 1);
+        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location);
 
-        double priority = 1.0; // Default priority
+        return typePriority * healthFactor * distanceFactor;
+    }
+
+    private static double getTypePriority(RobotType type, int currentRound) {
+        // Adjust priorities based on the game phase
         if (currentRound <= EARLY_GAME_END) {
-            priority = enemy.type == RobotType.valueOf("MINER") ? 3.0 : 1.0; // Adjusted
+            switch (type) {
+                case CARRIER:
+                    return 3;
+                case AMPLIFIER:
+                    return 2;
+                default:
+                    return 10;
+            }
         } else if (currentRound <= MID_GAME_END) {
-            priority = enemy.type == RobotType.valueOf("LAUNCHER") ? 3.0 : 1.0;
+            switch (type) {
+                case LAUNCHER:
+                    return 1;
+                case CARRIER:
+                    return 2;
+                default:
+                    return 10;
+            }
         } else {
-            // Assuming 'HQ' or an equivalent important unit type exists
-            try {
-                priority = enemy.type == RobotType.valueOf("HQ") ? 4.0 : (enemy.type == RobotType.valueOf("LAUNCHER") ? 3.0 : 1.0);
-            } catch (IllegalArgumentException e) {
-                // Fallback if the robot type is not recognized (e.g., 'HQ' does not exist)
-                priority = 1.0;
+            switch (type) {
+                case LAUNCHER:
+                    return 1;
+                case AMPLIFIER:
+                    return 2;
+                default:
+                    return 10;
             }
         }
-        return priority;
     }
 }
 
