@@ -1,4 +1,4 @@
-package testplayer;
+package mahathi_player_sandbox;
 
 import battlecode.common.*;
 
@@ -20,9 +20,7 @@ public strictfp class RobotPlayer {
      * these variables are static, in Battlecode they aren't actually shared between your robots.
      */
     static int turnCount = 0;
-    static final int MAX_INITIAL_LAUNCHERS = 20;
-    static final int MIN_MAINTAIN_LAUNCHERS = 10;
-    static int estimatedLauncherCount = 0;
+
     /**
      * A random number generator.
      * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
@@ -31,7 +29,9 @@ public strictfp class RobotPlayer {
      */
     static final Random rng = new Random(6147);
 
-    /** Array containing all the possible movement directions. */
+    /**
+     * Array containing all the possible movement directions.
+     */
     static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -42,13 +42,15 @@ public strictfp class RobotPlayer {
             Direction.WEST,
             Direction.NORTHWEST,
     };
-
+    static RobotController rc;
+    static final int EARLY_GAME_END = 500;
+    static final int MID_GAME_END = 1500;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
      *
-     * @param rc  The RobotController object. You use it to perform actions from this robot, and to get
-     *            information on its current status. Essentially your portal to interacting with the world.
+     * @param rc The RobotController object. You use it to perform actions from this robot, and to get
+     *           information on its current status. Essentially your portal to interacting with the world.
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
@@ -56,9 +58,10 @@ public strictfp class RobotPlayer {
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
         System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
+
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
-
+        RobotPlayer.rc = rc;
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
@@ -72,12 +75,19 @@ public strictfp class RobotPlayer {
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
                 switch (rc.getType()) {
-                    case HEADQUARTERS:     runHeadquarters(rc);  break;
-                    case CARRIER:      runCarrier(rc);   break;
-                    case LAUNCHER: runLauncher(rc); break;
+                    case HEADQUARTERS:
+                        runHeadquarters(rc);
+                        break;
+                    case CARRIER:
+                        runCarrier(rc);
+                        break;
+                    case LAUNCHER:
+                        runLauncher(rc);
+                        break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
                     case DESTABILIZER: // You might want to give them a try!
-                    case AMPLIFIER:       break;
+                    case AMPLIFIER:
+                        break;
                 }
 
             } catch (GameActionException e) {
@@ -103,13 +113,12 @@ public strictfp class RobotPlayer {
 
         // Your code should never reach here (unless it's intentional)! Self-destruction imminent...
     }
+
     /**
      * Run a single turn for a Headquarters.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
-
     static void runHeadquarters(RobotController rc) throws GameActionException {
-        System.out.println("HQ: Attempting to spawn Launcher, total attempts: " + estimatedLauncherCount);
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
@@ -129,17 +138,6 @@ public strictfp class RobotPlayer {
             rc.setIndicatorString("Trying to build a launcher");
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
-            }
-        }
-        if (estimatedLauncherCount < MAX_INITIAL_LAUNCHERS || (rc.getRoundNum() % 10 == 0 && estimatedLauncherCount <= MAX_INITIAL_LAUNCHERS - MIN_MAINTAIN_LAUNCHERS)) {
-            // Additional debugging print statement before attempting to spawn
-            System.out.println("HQ: Attempting to spawn Launcher, total attempts: " + estimatedLauncherCount);
-            Direction direct = directions[rng.nextInt(directions.length)];
-            MapLocation newLocation = rc.getLocation().add(direct);
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLocation)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLocation);
-                estimatedLauncherCount++; // Note: This count will not decrease when launchers are destroyed.
-                System.out.println("HQ: Spawning Launcher, new estimated count: " + estimatedLauncherCount);
             }
         }
     }
@@ -197,7 +195,6 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-
         // If we can see a well, move towards it
         WellInfo[] wells = rc.senseNearbyWells();
         if (wells.length > 1 && rng.nextInt(3) == 1) {
@@ -222,7 +219,6 @@ public strictfp class RobotPlayer {
     //Get Enemy Data: Obtain information about these enemies.
     //Prioritize by Type: Prioritize the enemies based on their type.
     //Attack Enemy: Attack the prioritized enemy.
-
     static void runLauncher(RobotController rc) throws GameActionException {
         RobotInfo target = findTargetPriority(rc);
         if (target != null && rc.canAttack(target.location)) {
@@ -293,6 +289,55 @@ public strictfp class RobotPlayer {
     }
 }
 
+
+//    static void runLauncher(RobotController rc) throws GameActionException {
+//        RobotInfo target = findTargetPriority(rc);
+//        if (target != null && rc.canAttack(target.location)) {
+//            rc.attack(target.location);
+//            rc.setIndicatorString("Attacking " + target.location);
+//        } else {
+//            Direction dir = directions[rng.nextInt(directions.length)];
+//            if (rc.canMove(dir)) {
+//                rc.move(dir);
+//            }
+//        }
+//    }
+//
+//    private static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
+//        RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
+//        if (enemies.length == 0) return null;
+//
+//        RobotInfo prioritizedTarget = null;
+//        double highestPriority = Double.MAX_VALUE;
+//        for (RobotInfo enemy : enemies) {
+//            double priority = calculatePriority(enemy, rc.getLocation());
+//            if (priority < highestPriority) {
+//                highestPriority = priority;
+//                prioritizedTarget = enemy;
+//            }
+//        }
+//        return prioritizedTarget;
+//    }
+//
+//    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
+//        double typePriority = getTypePriority(enemy.type);
+//        double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority
+//        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority
+//
+//        return typePriority * healthFactor * distanceFactor;
+//    }
+//
+//    private static int getTypePriority(RobotType type) {
+//        switch (type) {
+//            case CARRIER: return 1;
+//            case AMPLIFIER: return 2;
+//            case LAUNCHER: return 3;
+//            default: return 10;
+//        }
+//    }
+
+
+
 /*
     static void runLauncher(RobotController rc) throws GameActionException {
         // Try to attack someone
@@ -316,7 +361,6 @@ public strictfp class RobotPlayer {
         }
     }
 */
-
 
 
 
