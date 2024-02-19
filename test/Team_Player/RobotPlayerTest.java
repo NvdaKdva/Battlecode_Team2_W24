@@ -1,11 +1,11 @@
 package Team_Player;
 
-
 import battlecode.common.*;
+import battlecode.world.Inventory;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
+
+import static org.junit.Assert.*;
 
 public class RobotPlayerTest {
     @Test
@@ -14,16 +14,37 @@ public class RobotPlayerTest {
     }
     @Test
     public void testGetTotalResource() {
-        MockRobotController rc = new MockRobotController(10, 20);
+
+        MockRobotController rc = new MockRobotController(20, 20);
         // Call the method under test
         int actualTotalAmount = RobotPlayer.getTotalResource(rc);
 
         // Verify the result
-        assertNotEquals(rc.getAdamantium() + rc.getMana(), actualTotalAmount);
+        assertNotEquals(40, actualTotalAmount);
     }
 
+        /*@Test
+        public void testScanHQ() throws GameActionException {
+            // Create a mock RobotController for testing
+            MockRobotController rc = new MockRobotController();
 
-    public static class MockRobotController implements RobotController {
+            // Set up a mock RobotInfo representing the headquarters
+            RobotInfo hqRobot = new RobotInfo(1, Team.A, RobotType.HEADQUARTERS, new Inventory(), 100, new MapLocation(10, 10));
+
+            // Set nearby robots to include the headquarters
+            rc.setNearbyRobots(new RobotInfo[]{hqRobot});
+
+            // Call the scanHQ method
+            RobotPlayer.scanHQ(rc);
+
+            // Verify that hqLoc is correctly set to the headquarters location
+            assertNotEquals(hqRobot.getLocation(), RobotPlayer.hqLoc);
+        }*/
+
+
+
+
+    public  static class MockRobotController implements RobotController {
         private int adamantium;
         private int mana;
 
@@ -32,6 +53,9 @@ public class RobotPlayerTest {
             this.mana = mana;
         }
 
+        public MockRobotController() {
+
+        }
 
         public int getAdamantium() {
             return adamantium;
@@ -42,6 +66,11 @@ public class RobotPlayerTest {
             return mana;
         }
 
+        private RobotInfo[] nearbyRobots;
+
+        public void setNearbyRobots(RobotInfo[] nearbyRobots) {
+            this.nearbyRobots = nearbyRobots;
+        }
         @Override
         public int getRoundNum() {
             return 0;
@@ -154,7 +183,8 @@ public class RobotPlayerTest {
 
         @Override
         public RobotInfo[] senseNearbyRobots() {
-            return new RobotInfo[0];
+            //return new RobotInfo[0];
+             return nearbyRobots;
         }
 
         @Override
@@ -477,7 +507,4 @@ public class RobotPlayerTest {
 
         }
     }
-
 }
-
-
