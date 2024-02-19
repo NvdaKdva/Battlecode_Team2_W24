@@ -194,7 +194,6 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-
         // If we can see a well, move towards it
         WellInfo[] wells = rc.senseNearbyWells();
         if (wells.length > 1 && rng.nextInt(3) == 1) {
@@ -235,7 +234,6 @@ public strictfp class RobotPlayer {
     static RobotInfo findAdaptiveTarget() throws GameActionException {
         RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
         if (enemies.length == 0) return null;
-
         int currentRound = rc.getRoundNum();
         RobotInfo prioritizedTarget = null;
         double highestPriority = 0;
