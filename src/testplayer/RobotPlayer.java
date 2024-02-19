@@ -243,7 +243,7 @@ public strictfp class RobotPlayer {
         RobotInfo prioritizedTarget = null;
         double highestPriority = Double.MAX_VALUE;
         for (RobotInfo enemy : enemies) {
-            double priority = calculatePriority(enemy, rc.getLocation());
+            double priority = calculatePriority(enemy, rc.getLocation(), rc.getRoundNum());
             if (priority < highestPriority) {
                 highestPriority = priority;
                 prioritizedTarget = enemy;
@@ -252,20 +252,43 @@ public strictfp class RobotPlayer {
         return prioritizedTarget;
     }
 
-    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
-        double typePriority = getTypePriority(enemy.type);
-        double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority
-        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority
+    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation, int currentRound) {
+        double typePriority = getTypePriority(enemy.type, currentRound);
+        double healthFactor = 1.0 / (enemy.health + 1);
+        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location);
 
         return typePriority * healthFactor * distanceFactor;
     }
 
-    private static int getTypePriority(RobotType type) {
-        switch (type) {
-            case CARRIER: return 1;
-            case AMPLIFIER: return 2;
-            case LAUNCHER: return 3;
-            default: return 10;
+    private static double getTypePriority(RobotType type, int currentRound) {
+        // Adjust priorities based on the game phase
+        if (currentRound <= EARLY_GAME_END) {
+            switch (type) {
+                case CARRIER:
+                    return 3;
+                case AMPLIFIER:
+                    return 2;
+                default:
+                    return 10;
+            }
+        } else if (currentRound <= MID_GAME_END) {
+            switch (type) {
+                case LAUNCHER:
+                    return 1;
+                case CARRIER:
+                    return 2;
+                default:
+                    return 10;
+            }
+        } else {
+            switch (type) {
+                case LAUNCHER:
+                    return 1;
+                case AMPLIFIER:
+                    return 2;
+                default:
+                    return 10;
+            }
         }
     }
 }
