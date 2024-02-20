@@ -318,7 +318,7 @@ public strictfp class RobotPlayer {
     //Prioritize by Type: Prioritize the enemies based on their type.
     //Attack Enemy: Attack the prioritized enemy.
 
-    //sprint 3 changes for launcher's attack strategic
+    //sprint 3 changes for launcher's dynamic attack strategic
     static void runLauncher(RobotController rc) throws GameActionException {
         RobotInfo target = findTargetPriority(rc);
         if (target != null && rc.canAttack(target.location)) {
