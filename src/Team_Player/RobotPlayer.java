@@ -30,10 +30,7 @@ public strictfp class RobotPlayer {
     static int estAmplifierCount = 0;
     static int maxAmpLim = 0;
 
-//sprint 3 changes - mahathi
-    static RobotController rc;
-    static final int EARLY_GAME_END = 500;
-    static final int MID_GAME_END = 1500;
+
     /**
      * A random number generator.
      * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
@@ -318,7 +315,6 @@ public strictfp class RobotPlayer {
     //Prioritize by Type: Prioritize the enemies based on their type.
     //Attack Enemy: Attack the prioritized enemy.
 
-    //sprint 3 changes for launcher's dynamic attack strategic
     static void runLauncher(RobotController rc) throws GameActionException {
         RobotInfo target = findTargetPriority(rc);
         if (target != null && rc.canAttack(target.location)) {
@@ -339,7 +335,7 @@ public strictfp class RobotPlayer {
         RobotInfo prioritizedTarget = null;
         double highestPriority = Double.MAX_VALUE;
         for (RobotInfo enemy : enemies) {
-            double priority = calculatePriority(enemy, rc.getLocation(), rc.getRoundNum());
+            double priority = calculatePriority(enemy, rc.getLocation());
             if (priority < highestPriority) {
                 highestPriority = priority;
                 prioritizedTarget = enemy;
@@ -348,90 +344,20 @@ public strictfp class RobotPlayer {
         return prioritizedTarget;
     }
 
-    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation, int currentRound) {
-        double typePriority = getTypePriority(enemy.type, currentRound);
-        double healthFactor = 1.0 / (enemy.health + 1);
-        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location);
+    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
+        double typePriority = getTypePriority(enemy.type);
+        double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority
+        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority
 
         return typePriority * healthFactor * distanceFactor;
     }
 
-    private static double getTypePriority(RobotType type, int currentRound) {
-        // Adjust priorities based on the game phase
-        if (currentRound <= EARLY_GAME_END) {
-            switch (type) {
-                case CARRIER:
-                    return 3;
-                case AMPLIFIER:
-                    return 2;
-                default:
-                    return 10;
-            }
-        } else if (currentRound <= MID_GAME_END) {
-            switch (type) {
-                case LAUNCHER:
-                    return 1;
-                case CARRIER:
-                    return 2;
-                default:
-                    return 10;
-            }
-        } else {
-            switch (type) {
-                case LAUNCHER:
-                    return 1;
-                case AMPLIFIER:
-                    return 2;
-                default:
-                    return 10;
-            }
+    private static int getTypePriority(RobotType type) {
+        switch (type) {
+            case CARRIER: return 1;
+            case AMPLIFIER: return 2;
+            case LAUNCHER: return 3;
+            default: return 10;
         }
     }
 }
-
-//    static void runLauncher(RobotController rc) throws GameActionException {
-//        RobotInfo target = findTargetPriority(rc);
-//        if (target != null && rc.canAttack(target.location)) {
-//            rc.attack(target.location);
-//            rc.setIndicatorString("Attacking " + target.location);
-//        } else {
-//            Direction dir = directions[rng.nextInt(directions.length)];
-//            if (rc.canMove(dir)) {
-//                rc.move(dir);
-//            }
-//        }
-//    }
-//
-//    private static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
-//        RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
-//        if (enemies.length == 0) return null;
-//
-//        RobotInfo prioritizedTarget = null;
-//        double highestPriority = Double.MAX_VALUE;
-//        for (RobotInfo enemy : enemies) {
-//            double priority = calculatePriority(enemy, rc.getLocation());
-//            if (priority < highestPriority) {
-//                highestPriority = priority;
-//                prioritizedTarget = enemy;
-//            }
-//        }
-//        return prioritizedTarget;
-//    }
-//
-//    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
-//        double typePriority = getTypePriority(enemy.type);
-//        double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority
-//        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority
-//
-//        return typePriority * healthFactor * distanceFactor;
-//    }
-//
-//    private static int getTypePriority(RobotType type) {
-//        switch (type) {
-//            case CARRIER: return 1;
-//            case AMPLIFIER: return 2;
-//            case LAUNCHER: return 3;
-//            default: return 10;
-//        }
-//    }
-//}
