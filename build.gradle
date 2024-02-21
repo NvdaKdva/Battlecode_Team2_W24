@@ -26,6 +26,7 @@ sourceSets {
     scala.srcDirs = ["test"]
     scala.includes = ["**/*.scala"]
     scala.destinationDirectory.set(file("$buildDir/tests"))
+
   }
 }
 
@@ -167,6 +168,7 @@ def clientName = os.startsWith('windows') ? 'battlecode23-client-win' :
 
 dependencies {
   testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+
 
   // The Battlecode engine.
   implementation group: 'org.battlecode', name: 'battlecode23', version: versions.battlecode
@@ -342,3 +344,4 @@ task zipForSubmit(type: Zip) {
   destinationDirectory = project.projectDir
   from sourceSets.main.allSource
 }
+

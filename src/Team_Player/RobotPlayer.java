@@ -344,7 +344,7 @@ public strictfp class RobotPlayer {
         return prioritizedTarget;
     }
 
-    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
+    static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
         double typePriority = getTypePriority(enemy.type);
         double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority
         double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority

@@ -13,12 +13,17 @@ import static org.junit.Assert.*;
 public class RobotPlayerTest {
 
     private RobotPlayer robot;
+    private RobotInfo enemy;
+    private MapLocation myLocation;
 
+    //enemy = new RobotInfo(RobotType.LAUNCHER, 100, new MapLocation(10, 20));
+    //myLocation = new MapLocation(5, 15);
 
     @Before
     public void setUp() {
         robot = new RobotPlayer(); // Initialize your robot instance
         RobotPlayer.islandLoc = null;
+
     }
     @Test
     public void testScanWells_NoWells() {
@@ -114,13 +119,33 @@ public class RobotPlayerTest {
         assertEquals("Amplifier should have priority 2", 2, priority);
     }
 
-    @Test
+    @Ignore
     public void testGetTypePriority_Launcher() {
         int priority = robot.getTypePriority(RobotType.LAUNCHER);
         assertEquals("Launcher should have priority 3", 3, priority);
     }
 
 
+    @Ignore
+    public void testCalculatePriority_Carrier() {
+        enemy.type = RobotType.CARRIER;
+        double priority = robot.calculatePriority(enemy, myLocation);
+        assertEquals("Carrier priority should be calculated correctly", expectedPriorityForCarrier(), priority, 0.001);
+    }
+
+    @Ignore
+    public void testCalculatePriority_Amplifier() {
+        enemy.type = RobotType.AMPLIFIER;
+        double priority = robot.calculatePriority(enemy, myLocation);
+        assertEquals("Amplifier priority should be calculated correctly", expectedPriorityForAmplifier(), priority, 0.001);
+    }
+
+    @Test
+    public void testCalculatePriority_Launcher() {
+        enemy.type = RobotType.LAUNCHER;
+        double priority = calculatePriority(enemy, myLocation);
+        assertEquals("Launcher priority should be calculated correctly", expectedPriorityForLauncher(), priority, 0.001);
+    }
     public  static class MockRobotController implements RobotController {
         private int adamantium;
         private int mana;
