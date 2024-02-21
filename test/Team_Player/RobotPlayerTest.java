@@ -14,6 +14,7 @@ public class RobotPlayerTest {
 
     private RobotPlayer robot;
 
+
     @Before
     public void setUp() {
         robot = new RobotPlayer(); // Initialize your robot instance
@@ -101,6 +102,24 @@ public class RobotPlayerTest {
            int updatedCount = rc.getResourceAmount(resourceType);
            assertEquals(initialCount ,  updatedCount);
     }
+    @Test
+    public void testGetTypePriority_Carrier() {
+        int priority = robot.getTypePriority(RobotType.CARRIER);
+        assertEquals("Carrier should have priority 1", 1, priority);
+    }
+
+    @Test
+    public void testGetTypePriority_Amplifier() {
+        int priority = robot.getTypePriority(RobotType.AMPLIFIER);
+        assertEquals("Amplifier should have priority 2", 2, priority);
+    }
+
+    @Test
+    public void testGetTypePriority_Launcher() {
+        int priority = robot.getTypePriority(RobotType.LAUNCHER);
+        assertEquals("Launcher should have priority 3", 3, priority);
+    }
+
 
     public  static class MockRobotController implements RobotController {
         private int adamantium;

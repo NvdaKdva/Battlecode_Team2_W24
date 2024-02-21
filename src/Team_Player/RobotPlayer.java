@@ -352,7 +352,7 @@ public strictfp class RobotPlayer {
         return typePriority * healthFactor * distanceFactor;
     }
 
-    private static int getTypePriority(RobotType type) {
+    static int getTypePriority(RobotType type) {
         switch (type) {
             case CARRIER: return 1;
             case AMPLIFIER: return 2;
