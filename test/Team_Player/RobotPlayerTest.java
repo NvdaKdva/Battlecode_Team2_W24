@@ -2,28 +2,58 @@ package Team_Player;
 
 import battlecode.common.*;
 import battlecode.world.Inventory;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.Before;
+
 
 
 import static org.junit.Assert.*;
 
 public class RobotPlayerTest {
+
+    private RobotPlayer robot;
+
+    @Before
+    public void setUp() {
+        robot = new RobotPlayer(); // Initialize your robot instance
+        RobotPlayer.islandLoc = null;
+    }
     @Test
+    public void testScanWells_NoWells() {
+        // Create a dummy WellInfo array with no wells
+        WellInfo[] emptyWells = new WellInfo[0];
+        MockRobotController rc = new MockRobotController();
+        rc.setNearbyWells(emptyWells);
+        // Call the method
+        try {
+            robot.scanWells(rc);
+        } catch (Exception e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+
+        // Assert that wellsLoc is null (or any other expected behavior)
+        assertNull(robot.wellsLoc);
+    }
+
+@Test
     public void testSanity() {
         assertEquals(2, 1+1);
     }
     @Test
     public void testGetTotalResource() {
 
+        RobotPlayer rp = new RobotPlayer();
+
         MockRobotController rc = new MockRobotController(20, 20);
         // Call the method under test
-        int actualTotalAmount = RobotPlayer.getTotalResource(rc);
+        int actualTotalAmount = rp.getTotalResource(rc);
 
         // Verify the result
         assertNotEquals(40, actualTotalAmount);
     }
 
-        /*@Test
+        @Test
         public void testScanHQ() throws GameActionException {
             // Create a mock RobotController for testing
             MockRobotController rc = new MockRobotController();
@@ -39,14 +69,45 @@ public class RobotPlayerTest {
 
             // Verify that hqLoc is correctly set to the headquarters location
             assertNotEquals(hqRobot.getLocation(), RobotPlayer.hqLoc);
-        }*/
+        }
 
 
+        @Test
+        public void testScanIslandsWithNeutralIsland() throws GameActionException {
+            // Arrange
 
+            MockRobotController rc = new MockRobotController();
+            int neutralIslandId = 42;
+            MapLocation[] islandLocations = {new MapLocation(10, 10), new MapLocation(20, 20)};
+            rc.setNearbyIslands(new int[]{neutralIslandId});
+            rc.setTeamOccupyingIsland(neutralIslandId, Team.NEUTRAL);
+            rc.setNearbyIslandLocations(neutralIslandId, islandLocations);
+
+
+            // Act
+            robot.scanIslands(rc);
+
+            // Assert
+            assertNotEquals(islandLocations[0], robot.islandLoc);
+        }
+
+       @Test
+       public void testDepositResource() throws GameActionException {
+           // Create an instance of our mock class
+           MockRobotController rc = new MockRobotController();
+           ResourceType resourceType = ResourceType.ADAMANTIUM;
+           int initialCount = rc.getResourceAmount(resourceType) ;
+           robot.depositResource(rc, resourceType);
+           int updatedCount = rc.getResourceAmount(resourceType);
+           assertEquals(initialCount ,  updatedCount);
+    }
 
     public  static class MockRobotController implements RobotController {
         private int adamantium;
         private int mana;
+        private int[] nearByIsland;
+        private Team team;
+        private MapLocation[][] islandLocations;
 
         public MockRobotController(int adamantium, int mana) {
             this.adamantium = adamantium;
@@ -67,6 +128,7 @@ public class RobotPlayerTest {
         }
 
         private RobotInfo[] nearbyRobots;
+        private WellInfo[] nearbyWells;
 
         public void setNearbyRobots(RobotInfo[] nearbyRobots) {
             this.nearbyRobots = nearbyRobots;
@@ -214,7 +276,8 @@ public class RobotPlayerTest {
 
         @Override
         public int[] senseNearbyIslands() {
-            return new int[0];
+            return islandLocations[0]== null ? new int[0] : nearByIsland;
+
         }
 
         @Override
@@ -234,7 +297,7 @@ public class RobotPlayerTest {
 
         @Override
         public Team senseTeamOccupyingIsland(int islandIdx) throws GameActionException {
-            return null;
+            return Team.NEUTRAL;
         }
 
         @Override
@@ -419,7 +482,7 @@ public class RobotPlayerTest {
 
         @Override
         public boolean canTransferResource(MapLocation loc, ResourceType rType, int amount) {
-            return false;
+            return true;
         }
 
         @Override
@@ -505,6 +568,29 @@ public class RobotPlayerTest {
         @Override
         public void setIndicatorLine(MapLocation startLoc, MapLocation endLoc, int red, int green, int blue) {
 
+        }
+
+        public void setNearbyWells(WellInfo[] wells) {
+            this.nearbyWells = wells;
+        }
+
+        public void setNearbyIslands(int[] id) {
+            nearByIsland = new int[id.length];
+            System.arraycopy(id, 0, nearByIsland, 0, id.length);
+        }
+
+        public void setTeamOccupyingIsland(int neutralIslandId, Team team) {
+            this.team = team;
+        }
+
+        public void setNearbyIslandLocations(int neutralIslandId, MapLocation[] loc) {
+            if (nearByIsland == null || nearByIsland.length == 0) {
+                // Handle the case when no nearby islands are set
+                return;
+            }
+            if (nearByIsland[0] == neutralIslandId) {
+                islandLocations = new MapLocation[][]{loc};
+            }
         }
     }
 }
