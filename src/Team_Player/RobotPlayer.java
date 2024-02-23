@@ -285,8 +285,7 @@ public strictfp class RobotPlayer {
                 depositResource(rc, ResourceType.MANA);
             }
         }
-//        else
-//        {
+//        else {
 //            moveRandom(rc); // Move randomly if no wells are in sight
 //        }
         //Deposit resource to headquarter
