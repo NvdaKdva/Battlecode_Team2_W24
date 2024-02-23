@@ -31,14 +31,14 @@ public strictfp class RobotPlayer {
 
     /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
-        Direction.NORTH,
-        Direction.NORTHEAST,
-        Direction.EAST,
-        Direction.SOUTHEAST,
-        Direction.SOUTH,
-        Direction.SOUTHWEST,
-        Direction.WEST,
-        Direction.NORTHWEST,
+            Direction.NORTH,
+            Direction.NORTHEAST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH,
+            Direction.SOUTHWEST,
+            Direction.WEST,
+            Direction.NORTHWEST,
     };
 
     /**
@@ -210,9 +210,9 @@ public strictfp class RobotPlayer {
                     if (rng.nextBoolean()) {
                         rc.collectResource(wellLocation, -1);
                         rc.setIndicatorString("Collecting, now have, AD:" +
-                            rc.getResourceAmount(ResourceType.ADAMANTIUM) +
-                            " MN: " + rc.getResourceAmount(ResourceType.MANA) +
-                            " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
+                                rc.getResourceAmount(ResourceType.ADAMANTIUM) +
+                                " MN: " + rc.getResourceAmount(ResourceType.MANA) +
+                                " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
                     }
                 }
             }
@@ -283,7 +283,7 @@ public strictfp class RobotPlayer {
             MapLocation toAttack = rc.getLocation().add(Direction.EAST);
 
             if (rc.canAttack(toAttack)) {
-                rc.setIndicatorString("Attacking");        
+                rc.setIndicatorString("Attacking");
                 rc.attack(toAttack);
             }
         }
