@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import static battlecode.common.RobotType.HEADQUARTERS;
+import static battlecode.common.RobotType.HEADQUARTERS; //TODO <- WHY?
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.
@@ -29,7 +29,7 @@ public strictfp class RobotPlayer {
     static int estLauncherCount = 0;
     static int estAmplifierCount = 0;
     static int maxAmpLim = 0;
-
+    static Map myMap = new Map();
 
     /**
      * A random number generator.
@@ -48,6 +48,7 @@ public strictfp class RobotPlayer {
     static MapLocation wellsLoc;
     static MapLocation islandLoc;
     static boolean anchorMode = false;
+
 
     /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
@@ -77,6 +78,9 @@ public strictfp class RobotPlayer {
 
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
+
+        //Create the rc ind. map
+        myMap.createMap(rc.getMapWidth(), rc.getMapHeight());
 
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
@@ -173,6 +177,9 @@ public strictfp class RobotPlayer {
     }
 
     static void runAmplifier(RobotController rc) throws GameActionException {
+        //Populate local map
+        myMap.updateMap(rc);
+
         // Scan for critical locations
         scanIslands(rc);
         scanHQ(rc);
@@ -271,6 +278,9 @@ public strictfp class RobotPlayer {
         if(islandLoc == null) scanIslands(rc);
         if(wellsLoc == null) scanWells(rc);
 
+        //Populate local map
+        myMap.updateMap(rc);
+
         //Collect from well if close and inventory not full
         if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1))
             rc.collectResource(wellsLoc, -1);
@@ -317,6 +327,9 @@ public strictfp class RobotPlayer {
     //Attack Enemy: Attack the prioritized enemy.
 
     static void runLauncher(RobotController rc) throws GameActionException {
+        //Populate local map
+        myMap.updateMap(rc);
+
         RobotInfo target = findTargetPriority(rc);
         if (target != null && rc.canAttack(target.location)) {
             rc.attack(target.location);
