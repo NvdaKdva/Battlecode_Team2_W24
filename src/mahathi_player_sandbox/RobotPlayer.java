@@ -28,25 +28,35 @@ public strictfp class RobotPlayer {
      * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
      */
     static final Random rng = new Random(6147);
-
-    /** Array containing all the possible movement directions. */
+    static MapLocation hqLoc;
+    static MapLocation wellLoc;
+    static MapLocation wellsLoc;
+    static MapLocation islandLoc;
+    static boolean anchorMode = false;
+    /**
+     * Array containing all the possible movement directions.
+     */
     static final Direction[] directions = {
-        Direction.NORTH,
-        Direction.NORTHEAST,
-        Direction.EAST,
-        Direction.SOUTHEAST,
-        Direction.SOUTH,
-        Direction.SOUTHWEST,
-        Direction.WEST,
-        Direction.NORTHWEST,
+            Direction.NORTH,
+            Direction.NORTHEAST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH,
+            Direction.SOUTHWEST,
+            Direction.WEST,
+            Direction.NORTHWEST,
     };
-
+    static RobotController rc;
+    static final int EARLY_GAME_END = 500;
+    static final int MID_GAME_END = 1500;
+    static final double LAUNCHER_CRITICAL_HEALTH_THRESHOLD = 50.0; // Define the critical health threshold
+    static MapLocation hqLocation = null;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
      *
-     * @param rc  The RobotController object. You use it to perform actions from this robot, and to get
-     *            information on its current status. Essentially your portal to interacting with the world.
+     * @param rc The RobotController object. You use it to perform actions from this robot, and to get
+     *           information on its current status. Essentially your portal to interacting with the world.
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
@@ -54,10 +64,10 @@ public strictfp class RobotPlayer {
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
         System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
-
+        System.out.println("Launcher health is critical (" + rc.getHealth() + "). Retreating to HQ at " + hqLocation);
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
-
+        RobotPlayer.rc = rc;
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
@@ -71,12 +81,19 @@ public strictfp class RobotPlayer {
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
                 switch (rc.getType()) {
-                    case HEADQUARTERS:     runHeadquarters(rc);  break;
-                    case CARRIER:      runCarrier(rc);   break;
-                    case LAUNCHER: runLauncher(rc); break;
+                    case HEADQUARTERS:
+                        runHeadquarters(rc);
+                        break;
+                    case CARRIER:
+                        runCarrier(rc);
+                        break;
+                    case LAUNCHER:
+                        runLauncher(rc);
+                        break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
                     case DESTABILIZER: // You might want to give them a try!
-                    case AMPLIFIER:       break;
+                    case AMPLIFIER:
+                        break;
                 }
 
             } catch (GameActionException e) {
@@ -111,6 +128,7 @@ public strictfp class RobotPlayer {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
+        hqLocation = rc.getLocation();
         if (rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
@@ -167,10 +185,10 @@ public strictfp class RobotPlayer {
                 if (rc.canCollectResource(wellLocation, -1)) {
                     if (rng.nextBoolean()) {
                         rc.collectResource(wellLocation, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" + 
-                            rc.getResourceAmount(ResourceType.ADAMANTIUM) + 
-                            " MN: " + rc.getResourceAmount(ResourceType.MANA) + 
-                            " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
+                        rc.setIndicatorString("Collecting, now have, AD:" +
+                                rc.getResourceAmount(ResourceType.ADAMANTIUM) +
+                                " MN: " + rc.getResourceAmount(ResourceType.MANA) +
+                                " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
                     }
                 }
             }
@@ -184,13 +202,12 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-        
         // If we can see a well, move towards it
         WellInfo[] wells = rc.senseNearbyWells();
         if (wells.length > 1 && rng.nextInt(3) == 1) {
             WellInfo well_one = wells[1];
             Direction dir = me.directionTo(well_one.getMapLocation());
-            if (rc.canMove(dir)) 
+            if (rc.canMove(dir))
                 rc.move(dir);
         }
         // Also try to move randomly.
@@ -209,9 +226,12 @@ public strictfp class RobotPlayer {
     //Get Enemy Data: Obtain information about these enemies.
     //Prioritize by Type: Prioritize the enemies based on their type.
     //Attack Enemy: Attack the prioritized enemy.
-
     static void runLauncher(RobotController rc) throws GameActionException {
         RobotInfo target = findTargetPriority(rc);
+        if (rc.getHealth() < LAUNCHER_CRITICAL_HEALTH_THRESHOLD && hqLocation != null) {
+            System.out.println("Launcher health is critical (" + rc.getHealth() + "). Retreating to HQ at " + hqLocation);
+            retreatToHQ(rc);
+        }
         if (target != null && rc.canAttack(target.location)) {
             rc.attack(target.location);
             rc.setIndicatorString("Attacking " + target.location);
@@ -230,7 +250,7 @@ public strictfp class RobotPlayer {
         RobotInfo prioritizedTarget = null;
         double highestPriority = Double.MAX_VALUE;
         for (RobotInfo enemy : enemies) {
-            double priority = calculatePriority(enemy, rc.getLocation());
+            double priority = calculatePriority(enemy, rc.getLocation(), rc.getRoundNum());
             if (priority < highestPriority) {
                 highestPriority = priority;
                 prioritizedTarget = enemy;
@@ -239,23 +259,56 @@ public strictfp class RobotPlayer {
         return prioritizedTarget;
     }
 
-    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
-        double typePriority = getTypePriority(enemy.type);
-        double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority
-        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority
+    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation, int currentRound) {
+        double typePriority = getTypePriority(enemy.type, currentRound);
+        double healthFactor = 1.0 / (enemy.health + 1);
+        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location);
 
         return typePriority * healthFactor * distanceFactor;
     }
 
-    private static int getTypePriority(RobotType type) {
-        switch (type) {
-            case CARRIER: return 1;
-            case AMPLIFIER: return 2;
-            case LAUNCHER: return 3;
-            default: return 10;
+    private static double getTypePriority(RobotType type, int currentRound) {
+        // Adjust priorities based on the game phase
+        if (currentRound <= EARLY_GAME_END) {
+            switch (type) {
+                case CARRIER:
+                    return 3;
+                case AMPLIFIER:
+                    return 2;
+                default:
+                    return 10;
+            }
+        } else if (currentRound <= MID_GAME_END) {
+            switch (type) {
+                case LAUNCHER:
+                    return 1;
+                case CARRIER:
+                    return 2;
+                default:
+                    return 10;
+            }
+        } else {
+            switch (type) {
+                case LAUNCHER:
+                    return 1;
+                case AMPLIFIER:
+                    return 2;
+                default:
+                    return 10;
+            }
+        }
+    }
+    static void retreatToHQ(RobotController rc) throws GameActionException {
+        // Logic to move towards the HQ location for repairs or safety
+        Direction toHQ = rc.getLocation().directionTo(hqLocation);
+        if (rc.canMove(toHQ)) {
+            rc.move(toHQ);
+            rc.setIndicatorString("Retreating to HQ");
+            rc.setIndicatorDot(hqLocation, 255, 0, 0);
         }
     }
 }
+
 
 /*
     static void runLauncher(RobotController rc) throws GameActionException {

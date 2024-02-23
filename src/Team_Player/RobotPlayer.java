@@ -305,7 +305,6 @@ public strictfp class RobotPlayer {
         }
     }
 
-
     /**
      * Run a single turn for a Launcher.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
@@ -329,7 +328,7 @@ public strictfp class RobotPlayer {
         }
     }
 
-    static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
+    private static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
         RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
         if (enemies.length == 0) return null;
 
@@ -345,7 +344,7 @@ public strictfp class RobotPlayer {
         return prioritizedTarget;
     }
 
-    static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
+    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
         double typePriority = getTypePriority(enemy.type);
         double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority
         double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority
