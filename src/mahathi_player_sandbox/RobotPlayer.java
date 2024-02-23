@@ -28,7 +28,11 @@ public strictfp class RobotPlayer {
      * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
      */
     static final Random rng = new Random(6147);
-
+    static MapLocation hqLoc;
+    static MapLocation wellLoc;
+    static MapLocation wellsLoc;
+    static MapLocation islandLoc;
+    static boolean anchorMode = false;
     /**
      * Array containing all the possible movement directions.
      */
@@ -45,7 +49,8 @@ public strictfp class RobotPlayer {
     static RobotController rc;
     static final int EARLY_GAME_END = 500;
     static final int MID_GAME_END = 1500;
-
+    static final double LAUNCHER_CRITICAL_HEALTH_THRESHOLD = 50.0; // Define the critical health threshold
+    static MapLocation hqLocation = null;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -59,7 +64,7 @@ public strictfp class RobotPlayer {
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
         System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
-
+        System.out.println("Launcher health is critical (" + rc.getHealth() + "). Retreating to HQ at " + hqLocation);
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
         RobotPlayer.rc = rc;
@@ -123,6 +128,7 @@ public strictfp class RobotPlayer {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
+        hqLocation = rc.getLocation();
         if (rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
@@ -222,6 +228,10 @@ public strictfp class RobotPlayer {
     //Attack Enemy: Attack the prioritized enemy.
     static void runLauncher(RobotController rc) throws GameActionException {
         RobotInfo target = findTargetPriority(rc);
+        if (rc.getHealth() < LAUNCHER_CRITICAL_HEALTH_THRESHOLD && hqLocation != null) {
+            System.out.println("Launcher health is critical (" + rc.getHealth() + "). Retreating to HQ at " + hqLocation);
+            retreatToHQ(rc);
+        }
         if (target != null && rc.canAttack(target.location)) {
             rc.attack(target.location);
             rc.setIndicatorString("Attacking " + target.location);
@@ -288,7 +298,17 @@ public strictfp class RobotPlayer {
             }
         }
     }
+    static void retreatToHQ(RobotController rc) throws GameActionException {
+        // Logic to move towards the HQ location for repairs or safety
+        Direction toHQ = rc.getLocation().directionTo(hqLocation);
+        if (rc.canMove(toHQ)) {
+            rc.move(toHQ);
+            rc.setIndicatorString("Retreating to HQ");
+            rc.setIndicatorDot(hqLocation, 255, 0, 0);
+        }
+    }
 }
+
 
 /*
     static void runLauncher(RobotController rc) throws GameActionException {

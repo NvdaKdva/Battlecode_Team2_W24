@@ -131,11 +131,36 @@ public strictfp class RobotPlayer {
      * Run a single turn for a Headquarters.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
+
+    static void runAmplifier(RobotController rc) throws GameActionException {
+        // Scan for critical locations
+        scanIslands(rc);
+        scanHQ(rc);
+        scanWells(rc);
+
+        // Move towards island
+        if (islandLoc != null) {
+            moveTowards(rc, islandLoc);
+        }
+        // Scan for nearby amplifiers
+        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+        for (RobotInfo robot : nearbyRobots) {
+            if (robot.getType() == RobotType.AMPLIFIER) {
+                // Move towards the well if found nearby
+                if (wellLoc != null) {
+                    moveTowards(rc, wellLoc);
+                }
+                // Move towards HQ if another amplifier is found near the well
+                if (hqLoc != null) {
+                    moveTowards(rc, hqLoc);
+                }
+            }
+        }
+    }
     static void runHeadquarters(RobotController rc) throws GameActionException {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
-
         //Only makes Standard Anchors and if after round 150
         if (rc.getRoundNum() > 150 && rc.canBuildAnchor(Anchor.STANDARD)) {
             rc.buildAnchor(Anchor.STANDARD);
@@ -175,31 +200,7 @@ public strictfp class RobotPlayer {
         }
     }
 
-    static void runAmplifier(RobotController rc) throws GameActionException {
-        // Scan for critical locations
-        scanIslands(rc);
-        scanHQ(rc);
-        scanWells(rc);
 
-        // Move towards island
-        if (islandLoc != null) {
-            moveTowards(rc, islandLoc);
-        }
-        // Scan for nearby amplifiers
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        for (RobotInfo robot : nearbyRobots) {
-            if (robot.getType() == RobotType.AMPLIFIER) {
-                // Move towards the well if found nearby
-                if (wellLoc != null) {
-                    moveTowards(rc, wellLoc);
-                }
-                // Move towards HQ if another amplifier is found near the well
-                if (hqLoc != null) {
-                    moveTowards(rc, hqLoc);
-                }
-            }
-        }
-    }
 
     /**
      * Run a single turn for a Carrier.
@@ -267,22 +268,32 @@ public strictfp class RobotPlayer {
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA);
     }
 
+
     //CARRIER ALGO
     static void runCarrier(RobotController rc) throws GameActionException {
-        if(hqLoc == null) scanHQ(rc);
-        if(wellLoc == null) scanWells(rc);
-        if(islandLoc == null) scanIslands(rc);
-        if(wellsLoc == null) scanWells(rc);
-
+        if (hqLoc == null) scanHQ(rc);
+        if (wellLoc == null) scanWells(rc);
+        if (islandLoc == null) scanIslands(rc);
+        if (wellsLoc == null) scanWells(rc);
+        collectResources(rc);
         //Collect from well if close and inventory not full
-        if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1))
+        if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1)) {
             rc.collectResource(wellsLoc, -1);
-
+            if (getTotalResource(rc) >= GameConstants.CARRIER_CAPACITY) {
+                moveTowards(rc, hqLoc);
+                depositResource(rc, ResourceType.ADAMANTIUM);
+                depositResource(rc, ResourceType.MANA);
+            }
+        }
+//        else {
+//            moveRandom(rc); // Move randomly if no wells are in sight
+//        }
         //Deposit resource to headquarter
         int total = getTotalResource(rc);
-        //TODO Don't auto deposit, only deposit if full
-        depositResource(rc,ResourceType.ADAMANTIUM);
-        depositResource(rc,ResourceType.MANA);
+        if (total > 0 && (total == GameConstants.CARRIER_CAPACITY || rc.getLocation().isAdjacentTo(hqLoc))) {
+            depositResource(rc, ResourceType.ADAMANTIUM);
+            depositResource(rc, ResourceType.MANA);
+        }
 
         if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)){
             rc.takeAnchor(hqLoc,Anchor.STANDARD);
@@ -294,20 +305,38 @@ public strictfp class RobotPlayer {
             else RobotPlayer.moveTowards(rc, islandLoc);
             if(rc.canPlaceAnchor()) rc.placeAnchor();
         } else {
-            if (total == 0) {
-                if (wellLoc != null) {
-                    MapLocation me = rc.getLocation();
-                    if (!me.isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);
-                } else {
-                    RobotPlayer.moveRandom(rc);
-                }
-            }
-            if (total == GameConstants.CARRIER_CAPACITY) {
+            if (total < GameConstants.CARRIER_CAPACITY && wellLoc != null) {
+                MapLocation me = rc.getLocation();
+                if (!me.isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);
+            } else if (total == GameConstants.CARRIER_CAPACITY) {
                 RobotPlayer.moveTowards(rc, hqLoc);
+            } else {
+                RobotPlayer.moveRandom(rc);
             }
+//            if (total == 0) {
+//                if (wellLoc != null) {
+//                    MapLocation me = rc.getLocation();
+//                    if (!me.isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);
+//                } else {
+//                    RobotPlayer.moveRandom(rc);
+//                }
+//            }
+//            if (total == GameConstants.CARRIER_CAPACITY) {
+//                RobotPlayer.moveTowards(rc, hqLoc);
+//            }
         }
     }
 
+    static void collectResources(RobotController rc) throws GameActionException {
+        WellInfo[] wells = rc.senseNearbyWells();
+        for (WellInfo well : wells) {
+            MapLocation wellLoc = well.getMapLocation();
+            if (rc.canCollectResource(wellLoc, -1)) {
+                rc.collectResource(wellLoc, -1);
+                break; // Stop after collecting from one well to avoid unnecessary actions
+            }
+        }
+    }
     /**
      * Run a single turn for a Launcher.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
