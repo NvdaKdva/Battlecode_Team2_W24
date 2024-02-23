@@ -305,6 +305,7 @@ public strictfp class RobotPlayer {
         }
     }
 
+
     /**
      * Run a single turn for a Launcher.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
@@ -328,7 +329,7 @@ public strictfp class RobotPlayer {
         }
     }
 
-    private static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
+    static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
         RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
         if (enemies.length == 0) return null;
 
