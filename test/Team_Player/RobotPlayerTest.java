@@ -104,7 +104,10 @@ public class RobotPlayerTest {
 
         // Assert
         assertNotEquals(islandLocations[0], RobotPlayer.islandLoc);
+
     }
+
+
 
     @Test
     public void testDepositResource() throws GameActionException {
@@ -116,6 +119,17 @@ public class RobotPlayerTest {
         int updatedCount = rc.getResourceAmount(resourceType);
         assertEquals(initialCount, updatedCount);
     }
+    @Test
+    public void testDepositResourceZero() throws GameActionException {
+        // Create an instance of our mock class
+        MockRobotController rc = new MockRobotController(0, 0);
+        ResourceType resourceType = ResourceType.ADAMANTIUM;
+        int initialCount = rc.getResourceAmount(resourceType);
+        RobotPlayer.depositResource(rc, resourceType);
+        int updatedCount = rc.getResourceAmount(resourceType);
+        assertEquals(initialCount, updatedCount);
+    }
+
     @Test
     public void testDepositResourceZero() throws GameActionException {
         // Create an instance of our mock class
@@ -189,6 +203,7 @@ public class RobotPlayerTest {
         // Verify that rc.move was called with the correct direction
         assertTrue("Robot should move if canMove returns true", rc.hasMoved());
     }
+
     @Test
     public void testBuildAnchor() throws GameActionException {
         // Round 160, can build anchor
@@ -244,6 +259,9 @@ public class RobotPlayerTest {
         private  MapLocation wellLoc;
         private  MapLocation hqLoc;
         private  MapLocation islandLoc;
+
+    public static class MockRobotController implements RobotController {
+
         private int adamantium;
         private int mana;
         private int[] nearByIsland;
@@ -256,6 +274,7 @@ public class RobotPlayerTest {
         private String indicatorString = null;
         private RobotInfo[] sensedRobots;
         private boolean hasMoved;
+
         private int roundNum;
         private boolean canBuildAnchor;
         private boolean canBuildRobot;
@@ -272,6 +291,7 @@ public class RobotPlayerTest {
             this.canBuildAnchor = canBuildAnchor;
             this.canBuildRobot = canBuildRobot;
         }
+
 
         public void setRandomLocation(int x, int y) {
             this.randomLocation = new MapLocation(x, y);
