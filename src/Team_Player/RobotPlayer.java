@@ -328,23 +328,24 @@ public strictfp class RobotPlayer {
         }
     }
 
-    private static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
+    public static RobotInfo findTargetPriority(RobotController rc) throws GameActionException, NullPointerException {
         RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
         if (enemies.length == 0) return null;
 
         RobotInfo prioritizedTarget = null;
         double highestPriority = Double.MAX_VALUE;
         for (RobotInfo enemy : enemies) {
-            double priority = calculatePriority(enemy, rc.getLocation());
-            if (priority < highestPriority) {
-                highestPriority = priority;
-                prioritizedTarget = enemy;
-            }
+                double priority = calculatePriority(enemy, rc.getLocation());
+                if (priority < highestPriority) {
+                    highestPriority = priority;
+                    prioritizedTarget = enemy;
+                }
         }
         return prioritizedTarget;
+
     }
 
-    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
+    public static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
         double typePriority = getTypePriority(enemy.type);
         double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority
         double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority
