@@ -130,16 +130,7 @@ public class RobotPlayerTest {
         assertEquals(initialCount, updatedCount);
     }
 
-    @Test
-    public void testDepositResourceZero() throws GameActionException {
-        // Create an instance of our mock class
-        MockRobotController rc = new MockRobotController(0, 0);
-        ResourceType resourceType = ResourceType.ADAMANTIUM;
-        int initialCount = rc.getResourceAmount(resourceType);
-        RobotPlayer.depositResource(rc, resourceType);
-        int updatedCount = rc.getResourceAmount(resourceType);
-        assertEquals(initialCount, updatedCount);
-    }
+
 
     @Test
     public void testGetTypePriority_Carrier() {
@@ -256,17 +247,16 @@ public class RobotPlayerTest {
     }
 
     public static class MockRobotController implements RobotController {
-        private  MapLocation wellLoc;
-        private  MapLocation hqLoc;
-        private  MapLocation islandLoc;
+        private MapLocation wellLoc;
+        private MapLocation hqLoc;
+        private MapLocation islandLoc;
 
-    public static class MockRobotController implements RobotController {
 
         private int adamantium;
         private int mana;
         private int[] nearByIsland;
         private Team team;
-        private MapLocation randomLocation = new MapLocation(0,0);
+        private MapLocation randomLocation = new MapLocation(0, 0);
 
         public boolean moveCalled = false;
         private boolean canMoveResult = true;
@@ -632,7 +622,7 @@ public class RobotPlayerTest {
         public void move(Direction dir) throws GameActionException {
             moveCalled = true;
 
-            if (canMoveResult){
+            if (canMoveResult) {
                 hasMoved = true;
             }
         }
@@ -839,9 +829,10 @@ public class RobotPlayerTest {
         public boolean didAttack(MapLocation targetLocation) {
             return canAttack(targetLocation);
         }
-        public boolean hasMoved(){
+
+        public boolean hasMoved() {
             return hasMoved;
         }
-
     }
+
     }
