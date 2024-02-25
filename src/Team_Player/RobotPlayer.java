@@ -328,20 +328,25 @@ public strictfp class RobotPlayer {
         }
     }
 
+
     public static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
+
         RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
         if (enemies.length == 0) return null;
 
         RobotInfo prioritizedTarget = null;
         double highestPriority = Double.MAX_VALUE;
         for (RobotInfo enemy : enemies) {
+
             double priority = calculatePriority(enemy, rc.getLocation());
             if (priority < highestPriority) {
                 highestPriority = priority;
                 prioritizedTarget = enemy;
             }
+
         }
         return prioritizedTarget;
+
     }
 
     public static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
