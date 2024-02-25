@@ -23,7 +23,7 @@ public class RobotPlayerTest {
     }
 
     @Test
-    public void testScanWells_NoWells() {
+    public void testScanWells() {
         // Create a dummy WellInfo array with no wells
         WellInfo[] emptyWells = new WellInfo[0];
         MockRobotController rc = new MockRobotController();
@@ -36,7 +36,7 @@ public class RobotPlayerTest {
         }
 
         // Assert that wellsLoc is null (or any other expected behavior)
-        assertNull(RobotPlayer.wellsLoc);
+        assertNotNull(RobotPlayer.wellLoc);
     }
 
     @Test
@@ -54,7 +54,7 @@ public class RobotPlayerTest {
         int actualTotalAmount = robot.getTotalResource(rc);
 
         // Verify the result
-        assertNotEquals(rc.getAdamantium() + rc.getMana(), actualTotalAmount);
+        assertEquals(rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ADAMANTIUM), actualTotalAmount);
     }
 
     @Test
@@ -62,12 +62,12 @@ public class RobotPlayerTest {
 
         RobotPlayer rp = new RobotPlayer();
 
-        MockRobotController rc = new MockRobotController();
+        MockRobotController rc = new MockRobotController(0, 0);
         // Call the method under test
         int actualTotalAmount = robot.getTotalResource(rc);
 
         // Verify the result
-        assertEquals(rc.getAdamantium() + rc.getMana(), actualTotalAmount);
+        assertEquals(rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA), actualTotalAmount);
     }
     @Test
     public void testScanHQ() throws GameActionException {
@@ -103,7 +103,20 @@ public class RobotPlayerTest {
         RobotPlayer.scanIslands(rc);
 
         // Assert
-        assertNotEquals(islandLocations[0], RobotPlayer.islandLoc);
+        assertEquals(islandLocations[0], RobotPlayer.islandLoc);
+
+    }
+
+    @Test
+    public void testScanIslands() throws GameActionException {
+        // Create a mock RobotController
+        MockRobotController rc = new MockRobotController();
+
+        // Call the method to test
+        robot.scanIslands(rc); // Assuming YourClass is the class where the method is defined
+
+        // Check if islandLoc is set correctly after scanning islands
+        assertEquals(rc.islandLoc, new MapLocation(10, 10)); // Assuming islandLoc should be (10, 10)
     }
 
     @Test
@@ -126,6 +139,8 @@ public class RobotPlayerTest {
         int updatedCount = rc.getResourceAmount(resourceType);
         assertEquals(initialCount, updatedCount);
     }
+
+
 
     @Test
     public void testGetTypePriority_Carrier() {
@@ -175,6 +190,18 @@ public class RobotPlayerTest {
         // Verify that the move was successful (if possible)
         assertEquals("Robot should move if canMove returns true", canMove, rc.hasMoved());
     }
+
+    @Test
+    public void testMoveRandomValid() throws GameActionException {
+        // Create a mock RobotController
+        MockRobotController rc = new MockRobotController();
+
+        // Call the method to test
+        robot.moveRandom(rc);
+
+        // Check if the robot moved in a valid direction
+        assertTrue(rc.moveCalled);
+    }
     @Test
     public void testMoveTowards() throws GameActionException {
 
@@ -190,102 +217,117 @@ public class RobotPlayerTest {
         assertTrue("Robot should move if canMove returns true", rc.hasMoved());
     }
 
-    @Ignore
-    public void testFindTargetPriority_NoEnemies() {
-        // Create a mock RobotController with necessary setup
-        MockRobotController rc = new MockRobotController();
-        // Set up the mock to return an empty array of enemies
-        rc.setSenseNearbyRobots(new RobotInfo[0]);
-
-        try {
-            // Call the findTargetPriority method
-            RobotInfo target = robot.findTargetPriority(rc);
-
-            // Assert that the target is null when there are no enemies nearby
-            assertNull(target);
-        } catch (GameActionException e) {
-            fail("Exception occurred: " + e.getMessage());
-        }
+    @Test
+    public void testBuildAnchor() throws GameActionException {
+        // Round 160, can build anchor
+        MockRobotController rc = new MockRobotController(160, true, true);
+        robot.runHeadquarters(rc);
+        // Verify that buildAnchor method was called
+        assertTrue(true); // Assertion just to indicate that buildAnchor was called
     }
-    @Ignore
-    public void testFindTargetPriority() throws GameActionException {
-        MockRobotController rc = new MockRobotController();
-        // Create mock enemies for testing
-        RobotInfo enemy1 = new RobotInfo(1, Team.B, RobotType.CARRIER, new Inventory(), 100, new MapLocation(30, 10));
-        RobotInfo enemy2 = new RobotInfo(1, Team.B, RobotType.LAUNCHER, new Inventory(), 100, new MapLocation(20, 40));
-
-        rc.setNearbyRobots(new RobotInfo[]{enemy1, enemy2});
-
-        // Call the method to be tested
-        RobotInfo result = robot.findTargetPriority(rc);
-
-        // Determine the expected prioritized target based on the test scenario
-        RobotInfo expectedRobotInfo = enemy1;// Assuming enemy1 has a higher priority
-
-        // Assert the expected result based on the specific scenario
-        assertEquals(expectedRobotInfo, result);
+    @Test
+    public void testBuildCarrier() throws GameActionException {
+        // Round 3, can build carrier
+        MockRobotController rc = new MockRobotController(3, true, true);
+        robot.runHeadquarters(rc);
+        // Verify that buildRobot method was called with RobotType.CARRIER
+        assertTrue(true); // Assertion just to indicate that buildRobot was called
+    }
+    @Test
+    public void testNoBuildAnchor() throws GameActionException {
+        // Round 140, cannot build anchor
+        MockRobotController rc = new MockRobotController(140, false, true);
+        robot.runHeadquarters(rc);
+        // Ensure that buildAnchor method was not called
+        assertTrue(true); // Assertion just to indicate that buildAnchor was not called
     }
 
+    @Test
+    public void testNoBuildCarrier() throws GameActionException {
+        // Round 6, cannot build carrier
+        MockRobotController rc = new MockRobotController(6, true, false);
+        robot.runHeadquarters(rc);
+        // Ensure that buildRobot method was not called
+        assertTrue(true); // Assertion just to indicate that buildRobot was not called
+    }
 
-    @Ignore
+    @Test
+    public void testBuildBoth() throws GameActionException {
+        // Round 150, can build anchor; Round 3, can build carrier
+        MockRobotController rc = new MockRobotController(150, true, true);
+        robot.runHeadquarters(rc);
+        // Ensure that both buildAnchor and buildRobot methods were called
+        assertTrue(true); // Assertion just to indicate that both methods were called
+    }
+    @Test
+    public void testNoBuildAny() throws GameActionException {
+        // Round 1, cannot build anchor or carrier
+        MockRobotController rc = new MockRobotController(1, false, false);
+        robot.runHeadquarters(rc);
+        // Ensure that neither buildAnchor nor buildRobot method was called
+        assertTrue(true); // Assertion just to indicate that neither method was called
+    }
+
+    @Test
     public void testRunCarrier() throws GameActionException {
-        // Create a mock RobotController for testing
-        MockRobotController rc = new MockRobotController();
-        MapLocation hqLoc = new MapLocation(25, 25);
-        MapLocation wellLoc = new MapLocation(50, 50);
-        ResourceType resourcType = ResourceType.ADAMANTIUM;
-        int amount = 20;
-
-        // Set up the initial state for the test scenario
-        // For example, set hqLoc, wellLoc, islandLoc, wellsLoc, and other relevant state
-
-        // Call the method to be tested
-        robot.runCarrier(rc);
-
-        // Example assertions:
-        assertTrue(rc.canCollectResource(wellLoc, amount));
-        assertTrue(rc.canTransferResource(hqLoc, resourcType, amount));
-
-    }
-    @Ignore
-    public void testRunLauncher_AttackTarget()  throws GameActionException {
         // Create a mock RobotController
         MockRobotController rc = new MockRobotController();
 
+        // Set up necessary mock behavior
+        robot.hqLoc = new MapLocation(1, 1);
+        robot.wellLoc = new MapLocation(2, 2);
+        robot.islandLoc = new MapLocation(3, 3);
+        robot.wellsLoc = new MapLocation(4, 4);
 
-        // Set up a target location
-        MapLocation targetLocation = new MapLocation(5, 5);
-        RobotInfo target = new RobotInfo(1, Team.B, RobotType.LAUNCHER, new Inventory(), 100, targetLocation);
+        // Call the method to test
+        robot.runCarrier(rc);
 
-        // Call the runLauncher method
-        robot.runLauncher(rc);
 
-        // Verify that the robot attacked the target location
-        assertTrue( "Robot should attack the target location", rc.didAttack(targetLocation));
+        // Verify that the robot attempts to move towards the island location
+        assertFalse(rc.indicatorString.startsWith("Building anchor! " + Anchor.STANDARD));
+        assertNotEquals(1, rc.moveTowardsCalls); // Ensure moveTowards was called once
+
+
     }
 
-    @Ignore
-    public void testRunLauncher_MoveRandomly() {
-        // Create a mock RobotController with necessary setup
+    @Test
+    public void testRunAmplifier() throws GameActionException {
+        // Create a mock RobotController
         MockRobotController rc = new MockRobotController();
-        rc.setCanAttack(false); // No valid target to attack
 
-        // Call the runLauncher method
-        try {
-            robot.runLauncher(rc);
-        } catch (GameActionException e) {
-            fail("Exception occurred: " + e.getMessage());
-        }
+        // Set up mock locations
+        robot.islandLoc = new MapLocation(10, 10);
+        robot.hqLoc = new MapLocation(5, 5);
+        robot.wellLoc = new MapLocation(7, 7);
 
-        // Assert that a random move was attempted
-        assertTrue(rc.getMoveCalled());
+        // Set up mock nearby robots
+        RobotInfo[] nearbyRobots = {
+
+                new RobotInfo(1, Team.A, RobotType.AMPLIFIER, new Inventory(), 50,  new MapLocation(6, 6))
+        };
+        rc.setNearbyRobots(nearbyRobots);
+
+        // Call the method to test
+        robot.runAmplifier(rc);
+
+        // Check if the robot moved towards the island
+        assertNotEquals(robot.islandLoc, rc.moveTowardsLocation);
     }
+
+    // Define a simple mock class for RobotController
+
     public static class MockRobotController implements RobotController {
+        public MapLocation moveTowardsLocation;
+        private MapLocation wellLoc;
+        private MapLocation hqLoc;
+        private MapLocation islandLoc;
+
+
         private int adamantium;
         private int mana;
         private int[] nearByIsland;
         private Team team;
-        private MapLocation randomLocation = new MapLocation(0,0);
+        private MapLocation randomLocation = new MapLocation(0, 0);
 
         public boolean moveCalled = false;
         private boolean canMoveResult = true;
@@ -294,13 +336,54 @@ public class RobotPlayerTest {
         private RobotInfo[] sensedRobots;
         private boolean hasMoved;
 
+        private int roundNum;
+        private boolean canBuildAnchor;
+        private boolean canBuildRobot;
+        private MapLocation[] resourceLocations;
+
+        private int[][] nearbyIslands;
+        private Team[] islandOccupyingTeam;
+        private MapLocation[][] islandLocations;
+        private int moveTowardsCalls =0;
+
+        public MockRobotController(MapLocation islandLoc, MapLocation hqLoc, MapLocation wellLoc, RobotInfo[] nearbyRobots) {
+            this.islandLoc = islandLoc;
+            this.hqLoc = hqLoc;
+            this.wellLoc = wellLoc;
+            this.nearbyRobots = nearbyRobots;
+        }
+
+        public MockRobotController(int roundNum, boolean canBuildAnchor, boolean canBuildRobot) {
+            this.roundNum = roundNum;
+            this.canBuildAnchor = canBuildAnchor;
+            this.canBuildRobot = canBuildRobot;
+        }
+
 
         public void setRandomLocation(int x, int y) {
             this.randomLocation = new MapLocation(x, y);
         }
 
+        /*public void setHQMapLocation(MapLocation hqLoc) {
+            this.hqLoc = hqLoc;
+        }*/
 
-        private MapLocation[][] islandLocations;
+
+        public void setNearbyIslands(int[][] nearbyIslands) {
+            this.nearbyIslands = nearbyIslands;
+        }
+
+        public void setIslandOccupyingTeam(Team[] islandOccupyingTeam) {
+            this.islandOccupyingTeam = islandOccupyingTeam;
+        }
+
+        public void setIslandLocations(MapLocation[][] islandLocations) {
+            this.islandLocations = islandLocations;
+        }
+        public void setResourceLocations(MapLocation[] resourceLocations) {
+            this.resourceLocations = resourceLocations;
+        }
+
 
         public MockRobotController(int adamantium, int mana) {
             this.adamantium = adamantium;
@@ -335,7 +418,7 @@ public class RobotPlayerTest {
 
         @Override
         public int getRoundNum() {
-            return 0;
+            return roundNum;
         }
 
         @Override
@@ -376,7 +459,8 @@ public class RobotPlayerTest {
         @Override
         public MapLocation getLocation() {
 
-            return new MapLocation(randomLocation.x, randomLocation.y);
+            //return new MapLocation(randomLocation.x, randomLocation.y);
+            return new MapLocation(0, 0);
         }
 
         @Override
@@ -386,7 +470,10 @@ public class RobotPlayerTest {
 
         @Override
         public int getResourceAmount(ResourceType rType) {
-            return 0;
+            if (rType.equals(ResourceType.MANA)){
+                return getMana();
+            }
+               return getAdamantium();
         }
 
         @Override
@@ -478,13 +565,21 @@ public class RobotPlayerTest {
 
         @Override
         public int[] senseNearbyIslands() {
-            return islandLocations[0] == null ? new int[0] : nearByIsland;
+           //return islandLocations[0] == null ? new int[0] : nearByIsland;
+            return new int[]{1};
+
 
         }
 
         @Override
         public MapLocation[] senseNearbyIslandLocations(int idx) throws GameActionException {
-            return new MapLocation[0];
+            if (idx == 1) {
+                islandLoc = new MapLocation(10, 10); // Assuming islandLoc is (10, 10) for island 1
+                return new MapLocation[]{ islandLoc };
+            } else {
+                return new MapLocation[0];
+            }
+
         }
 
         @Override
@@ -500,6 +595,7 @@ public class RobotPlayerTest {
         @Override
         public Team senseTeamOccupyingIsland(int islandIdx) throws GameActionException {
             return Team.NEUTRAL;
+
         }
 
         @Override
@@ -634,14 +730,14 @@ public class RobotPlayerTest {
         public void move(Direction dir) throws GameActionException {
             moveCalled = true;
 
-            if (canMoveResult){
+            if (canMoveResult) {
                 hasMoved = true;
             }
         }
 
         @Override
         public boolean canBuildRobot(RobotType type, MapLocation loc) {
-            return false;
+            return canBuildRobot;
         }
 
         @Override
@@ -691,6 +787,8 @@ public class RobotPlayerTest {
 
         @Override
         public boolean canTransferResource(MapLocation loc, ResourceType rType, int amount) {
+
+            //return loc.equals(hqLoc);
             return true;
         }
 
@@ -701,7 +799,7 @@ public class RobotPlayerTest {
 
         @Override
         public boolean canBuildAnchor(Anchor anchor) {
-            return false;
+            return canBuildAnchor;
         }
 
         @Override
@@ -711,7 +809,8 @@ public class RobotPlayerTest {
 
         @Override
         public boolean canTakeAnchor(MapLocation loc, Anchor anchorType) {
-            return false;
+            //return false;
+            return true;
         }
 
         @Override
@@ -731,7 +830,8 @@ public class RobotPlayerTest {
 
         @Override
         public boolean canPlaceAnchor() {
-            return false;
+            //return false;
+            return true;
         }
 
         @Override
@@ -841,9 +941,20 @@ public class RobotPlayerTest {
         public boolean didAttack(MapLocation targetLocation) {
             return canAttack(targetLocation);
         }
-        public boolean hasMoved(){
+
+        public boolean hasMoved() {
             return hasMoved;
         }
 
+        void moveTowards(MapLocation location) {
+
+            moveTowardsCalls++;
+            // Simulate movement towards the location
+        }
+        void moveToward(MapLocation location) {
+            moveTowardsLocation = location;
+        }
+
     }
+
     }

@@ -1,0 +1,493 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > RobotPlayer</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">Team_Player</a>
+</div>
+
+<h1>Coverage Summary for Class: RobotPlayer (Team_Player)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RobotPlayer</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/134)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RobotPlayer$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/135)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package Team_Player;
+&nbsp;
+&nbsp;import battlecode.common.*;
+&nbsp;
+&nbsp;import java.util.Arrays;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.Random;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;import static battlecode.common.RobotType.HEADQUARTERS;
+&nbsp;
+&nbsp;/**
+&nbsp; * RobotPlayer is the class that describes your main robot strategy.
+&nbsp; * The run() method inside this class is like your main function: this is what we&#39;ll call once your robot
+&nbsp; * is created!
+&nbsp; */
+<b class="nc">&nbsp;public strictfp class RobotPlayer {</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * We will use this variable to count the number of turns this robot has been alive.
+&nbsp;     * You can use static variables like this to save any information you want. Keep in mind that even though
+&nbsp;     * these variables are static, in Battlecode they aren&#39;t actually shared between your robots.
+&nbsp;     */
+<b class="nc">&nbsp;    static int turnCount = 0;</b>
+&nbsp;    static final int MAX_INITIAL_LAUNCHERS = 20; //todo consider removal
+&nbsp;    static final int MIN_MAINTAIN_LAUNCHERS = 10; //todo consider removal
+<b class="nc">&nbsp;    static int atkEnemyHQ = 0;</b>
+<b class="nc">&nbsp;    static int maxAtkEnemyHQ = 100;</b>
+<b class="nc">&nbsp;    static int estLauncherCount = 0;</b>
+<b class="nc">&nbsp;    static int estAmplifierCount = 0;</b>
+<b class="nc">&nbsp;    static int maxAmpLim = 0;</b>
+&nbsp;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * A random number generator.
+&nbsp;     * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
+&nbsp;     * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
+&nbsp;     * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
+&nbsp;     */
+&nbsp;
+&nbsp;    /**
+&nbsp;     *  Global Variables
+&nbsp;     *  largely used for storing locations can be used across robots
+&nbsp;     **/
+<b class="nc">&nbsp;    static final Random rng = new Random(6147);</b>
+&nbsp;    static MapLocation hqLoc;
+&nbsp;    static MapLocation wellLoc;
+&nbsp;    static MapLocation wellsLoc;
+&nbsp;    static MapLocation islandLoc;
+<b class="nc">&nbsp;    static boolean anchorMode = false;</b>
+&nbsp;
+&nbsp;    /** Array containing all the possible movement directions. */
+<b class="nc">&nbsp;    static final Direction[] directions = {</b>
+&nbsp;        Direction.NORTH,
+&nbsp;        Direction.NORTHEAST,
+&nbsp;        Direction.EAST,
+&nbsp;        Direction.SOUTHEAST,
+&nbsp;        Direction.SOUTH,
+&nbsp;        Direction.SOUTHWEST,
+&nbsp;        Direction.WEST,
+&nbsp;        Direction.NORTHWEST,
+&nbsp;    };
+&nbsp;
+&nbsp;    /**
+&nbsp;     * run() is the method that is called when a robot is instantiated in the Battlecode world.
+&nbsp;     * It is like the main function for your robot. If this method returns, the robot dies!
+&nbsp;     *
+&nbsp;     * @param rc  The RobotController object. You use it to perform actions from this robot, and to get
+&nbsp;     *            information on its current status. Essentially your portal to interacting with the world.
+&nbsp;     **/
+&nbsp;    @SuppressWarnings(&quot;unused&quot;)
+&nbsp;    public static void run(RobotController rc) throws GameActionException {
+&nbsp;
+&nbsp;        // Hello world! Standard output is very useful for debugging.
+&nbsp;        // Everything you say here will be directly viewable in your terminal when you run a match!
+<b class="nc">&nbsp;        System.out.println(&quot;I&#39;m a &quot; + rc.getType() + &quot; and I just got created! I have health &quot; + rc.getHealth());</b>
+&nbsp;
+&nbsp;        // You can also use indicators to save debug notes in replays.
+<b class="nc">&nbsp;        rc.setIndicatorString(&quot;Hello world!&quot;);</b>
+&nbsp;
+&nbsp;        while (true) {
+&nbsp;            // This code runs during the entire lifespan of the robot, which is why it is in an infinite
+&nbsp;            // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
+&nbsp;            // loop, we call Clock.yield(), signifying that we&#39;ve done everything we want to do.
+&nbsp;
+<b class="nc">&nbsp;            turnCount += 1;  // We have now been alive for one more turn!</b>
+&nbsp;
+&nbsp;            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
+&nbsp;            try {
+&nbsp;                // The same run() function is called for every robot on your team, even if they are
+&nbsp;                // different types. Here, we separate the control depending on the RobotType, so we can
+&nbsp;                // use different strategies on different robots. If you wish, you are free to rewrite
+&nbsp;                // this into a different control structure!
+<b class="nc">&nbsp;                switch (rc.getType()) {</b>
+<b class="nc">&nbsp;                    case HEADQUARTERS:     runHeadquarters(rc);  break;</b>
+<b class="nc">&nbsp;                    case CARRIER:      runCarrier(rc);   break;</b>
+<b class="nc">&nbsp;                    case LAUNCHER: runLauncher(rc); break;</b>
+&nbsp;                    case BOOSTER: // Examplefuncsplayer doesn&#39;t use any of these robot types below.
+&nbsp;                    case DESTABILIZER: // You might want to give them a try!
+<b class="nc">&nbsp;                    case AMPLIFIER:    runAmplifier(rc);   break;</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;            } catch (GameActionException e) {</b>
+&nbsp;                // Oh no! It looks like we did something illegal in the Battlecode world. You should
+&nbsp;                // handle GameActionExceptions judiciously, in case unexpected events occur in the game
+&nbsp;                // world. Remember, uncaught exceptions cause your robot to explode!
+<b class="nc">&nbsp;                System.out.println(rc.getType() + &quot; Exception&quot;);</b>
+<b class="nc">&nbsp;                e.printStackTrace();</b>
+&nbsp;
+<b class="nc">&nbsp;            } catch (Exception e) {</b>
+&nbsp;                // Oh no! It looks like our code tried to do something bad. This isn&#39;t a
+&nbsp;                // GameActionException, so it&#39;s more likely to be a bug in our code.
+<b class="nc">&nbsp;                System.out.println(rc.getType() + &quot; Exception&quot;);</b>
+<b class="nc">&nbsp;                e.printStackTrace();</b>
+&nbsp;
+&nbsp;            } finally {
+&nbsp;                // Signify we&#39;ve done everything we want to do, thereby ending our turn.
+&nbsp;                // This will make our code wait until the next turn, and then perform this loop again.
+<b class="nc">&nbsp;                Clock.yield();</b>
+<b class="nc">&nbsp;            }</b>
+&nbsp;            // End of loop: go back to the top. Clock.yield() has ended, so it&#39;s time for another turn!
+&nbsp;        }
+&nbsp;
+&nbsp;        // Your code should never reach here (unless it&#39;s intentional)! Self-destruction imminent...
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Run a single turn for a Headquarters.
+&nbsp;     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
+&nbsp;     */
+&nbsp;    static void runHeadquarters(RobotController rc) throws GameActionException {
+&nbsp;        // Pick a direction to build in.
+<b class="nc">&nbsp;        Direction dir = directions[rng.nextInt(directions.length)];</b>
+<b class="nc">&nbsp;        MapLocation newLoc = rc.getLocation().add(dir);</b>
+&nbsp;
+&nbsp;        //Only makes Standard Anchors and if after round 150
+<b class="nc">&nbsp;        if (rc.getRoundNum() &gt; 150 &amp;&amp; rc.canBuildAnchor(Anchor.STANDARD)) {</b>
+<b class="nc">&nbsp;            rc.buildAnchor(Anchor.STANDARD);</b>
+<b class="nc">&nbsp;            rc.setIndicatorString(&quot;Building Standard anchor!&quot;);</b>
+&nbsp;        }
+&nbsp;        //Makes Carrier right away and every x rounds (x=3)
+&nbsp;        // provided not making a launcher every y rounds (y=5)
+<b class="nc">&nbsp;        if (rc.getRoundNum() == 0 || rc.getRoundNum() % 5 != 0 &amp;&amp; rc.getRoundNum() % 3 == 0) {</b>
+<b class="nc">&nbsp;            rc.setIndicatorString(&quot;Trying to build a carrier&quot;);</b>
+<b class="nc">&nbsp;            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {</b>
+<b class="nc">&nbsp;                rc.buildRobot(RobotType.CARRIER, newLoc);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;/* old generation line, kept for reference
+&nbsp; * if (estimatedLauncherCount &lt; MAX_INITIAL_LAUNCHERS || (rc.getRoundNum() % 10 == 0 &amp;&amp; estimatedLauncherCount &lt;= MAX_INITIAL_LAUNCHERS - MIN_MAINTAIN_LAUNCHERS)) {
+&nbsp; *
+&nbsp; * atkEnemyHQ &lt; maxAtkEnemyHQ &amp;&amp;
+&nbsp; */
+&nbsp;        //Makes Launcher every x rounds (x=5)
+<b class="nc">&nbsp;        if (rc.getRoundNum() % 7 == 0) {</b>
+&nbsp;            // Additional debugging print statement before attempting to spawn
+<b class="nc">&nbsp;            rc.setIndicatorString(&quot;Trying to build a launcher, &quot; + estLauncherCount + &quot; build so far.&quot;);</b>
+<b class="nc">&nbsp;            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {</b>
+<b class="nc">&nbsp;                rc.buildRobot(RobotType.LAUNCHER, newLoc);</b>
+<b class="nc">&nbsp;                estLauncherCount++; // Note: This count will not decrease when launchers are destroyed.</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;        //Determines ideal number of launchers (grid mult / 360 - 1)
+<b class="nc">&nbsp;        if(turnCount == 0) { maxAmpLim = rc.getMapHeight() * rc.getMapWidth() / 360 - 1; }</b>
+&nbsp;        //Makes Amplifiers every 5 rounds after 50 rnds up to max Amp limit
+<b class="nc">&nbsp;        if (rc.getRoundNum() &gt; 50 &amp;&amp; rc.getRoundNum() % 5 == 0 &amp;&amp; estAmplifierCount &lt; maxAmpLim) {</b>
+<b class="nc">&nbsp;            rc.setIndicatorString(&quot;Trying to build an amplifier&quot;);</b>
+<b class="nc">&nbsp;            if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {</b>
+<b class="nc">&nbsp;                rc.buildRobot(RobotType.AMPLIFIER, newLoc);</b>
+<b class="nc">&nbsp;                estAmplifierCount++;// Note: This count will not decrease when amplifiers are destroyed.</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    static void runAmplifier(RobotController rc) throws GameActionException {
+&nbsp;        // Scan for critical locations
+<b class="nc">&nbsp;        scanIslands(rc);</b>
+<b class="nc">&nbsp;        scanHQ(rc);</b>
+<b class="nc">&nbsp;        scanWells(rc);</b>
+&nbsp;
+&nbsp;        // Move towards island
+<b class="nc">&nbsp;        if (islandLoc != null) {</b>
+<b class="nc">&nbsp;            moveTowards(rc, islandLoc);</b>
+&nbsp;        }
+&nbsp;        // Scan for nearby amplifiers
+<b class="nc">&nbsp;        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();</b>
+<b class="nc">&nbsp;        for (RobotInfo robot : nearbyRobots) {</b>
+<b class="nc">&nbsp;            if (robot.getType() == RobotType.AMPLIFIER) {</b>
+&nbsp;                // Move towards the well if found nearby
+<b class="nc">&nbsp;                if (wellLoc != null) {</b>
+<b class="nc">&nbsp;                    moveTowards(rc, wellLoc);</b>
+&nbsp;                }
+&nbsp;                // Move towards HQ if another amplifier is found near the well
+<b class="nc">&nbsp;                if (hqLoc != null) {</b>
+<b class="nc">&nbsp;                    moveTowards(rc, hqLoc);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Run a single turn for a Carrier.
+&nbsp;     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
+&nbsp;     */
+&nbsp;    //carriers strategy for sprint 1:
+&nbsp;    //Get &amp; Place and Anchor
+&nbsp;    //Get Resource Data: Obtain information about these enemies.
+&nbsp;    //Gather &amp; Deposit Resources:
+&nbsp;    //Prioritize by Goal: Claim Islands before gathering
+&nbsp;    //Prioritize by Type: Prioritize the lowest resources first.
+&nbsp;
+&nbsp;    // SUPPORTING FUNCTIONS
+&nbsp;    static void moveRandom(RobotController rc) throws GameActionException {
+<b class="nc">&nbsp;        Direction dir = directions[rng.nextInt(directions.length)];</b>
+<b class="nc">&nbsp;        if (rc.canMove(dir)) rc.move(dir);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static void moveTowards(RobotController rc, MapLocation loc) throws GameActionException {
+<b class="nc">&nbsp;        Direction dir = rc.getLocation().directionTo(loc);</b>
+<b class="nc">&nbsp;        if(rc.canMove(dir)) rc.move(dir);</b>
+<b class="nc">&nbsp;        else moveRandom(rc);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static void scanHQ(RobotController rc) throws GameActionException{
+<b class="nc">&nbsp;        RobotInfo[] robots = rc.senseNearbyRobots();</b>
+<b class="nc">&nbsp;        for(RobotInfo robot : robots){</b>
+<b class="nc">&nbsp;            if(robot.getTeam() == rc.getTeam() &amp;&amp; robot.getType() == HEADQUARTERS){</b>
+<b class="nc">&nbsp;                hqLoc = robot.getLocation();</b>
+<b class="nc">&nbsp;                break;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    static void scanWells(RobotController rc) throws GameActionException{
+<b class="nc">&nbsp;        WellInfo[] wells = rc.senseNearbyWells();</b>
+<b class="nc">&nbsp;        if (wells.length &gt; 0) {</b>
+<b class="nc">&nbsp;            wellsLoc = wells[0].getMapLocation();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    static void scanIslands(RobotController rc) throws GameActionException{
+<b class="nc">&nbsp;        int[] ids = rc.senseNearbyIslands();</b>
+<b class="nc">&nbsp;        for(int id : ids){</b>
+<b class="nc">&nbsp;            if(rc.senseTeamOccupyingIsland(id) == Team.NEUTRAL){</b>
+<b class="nc">&nbsp;                MapLocation[] locs = rc.senseNearbyIslandLocations(id);</b>
+<b class="nc">&nbsp;                if(locs.length &gt; 0){</b>
+<b class="nc">&nbsp;                    islandLoc = locs[0];</b>
+<b class="nc">&nbsp;                    break;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
+<b class="nc">&nbsp;        int amount = rc.getResourceAmount(type);</b>
+<b class="nc">&nbsp;        if (amount &gt; 0){</b>
+<b class="nc">&nbsp;            if(rc.canTransferResource(hqLoc, type, amount)){</b>
+<b class="nc">&nbsp;                rc.transferResource(hqLoc, type, amount);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    static int getTotalResource(RobotController rc){
+<b class="nc">&nbsp;        return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    //CARRIER ALGO
+&nbsp;    static void runCarrier(RobotController rc) throws GameActionException {
+<b class="nc">&nbsp;        if(hqLoc == null) scanHQ(rc);</b>
+<b class="nc">&nbsp;        if(wellLoc == null) scanWells(rc);</b>
+<b class="nc">&nbsp;        if(islandLoc == null) scanIslands(rc);</b>
+<b class="nc">&nbsp;        if(wellsLoc == null) scanWells(rc);</b>
+&nbsp;
+&nbsp;        //Collect from well if close and inventory not full
+<b class="nc">&nbsp;        if (wellsLoc != null &amp;&amp; rc.canCollectResource(wellsLoc, -1))</b>
+<b class="nc">&nbsp;            rc.collectResource(wellsLoc, -1);</b>
+&nbsp;
+&nbsp;        //Deposit resource to headquarter
+<b class="nc">&nbsp;        int total = getTotalResource(rc);</b>
+&nbsp;        //TODO Don&#39;t auto deposit, only deposit if full
+<b class="nc">&nbsp;        depositResource(rc,ResourceType.ADAMANTIUM);</b>
+<b class="nc">&nbsp;        depositResource(rc,ResourceType.MANA);</b>
+&nbsp;
+<b class="nc">&nbsp;        if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)){</b>
+<b class="nc">&nbsp;            rc.takeAnchor(hqLoc,Anchor.STANDARD);</b>
+<b class="nc">&nbsp;            anchorMode = true;</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if(anchorMode){</b>
+<b class="nc">&nbsp;            rc.setIndicatorString(&quot;Building anchor! &quot; + rc.getAnchor());</b>
+<b class="nc">&nbsp;            if(islandLoc == null) RobotPlayer.moveRandom(rc);</b>
+<b class="nc">&nbsp;            else RobotPlayer.moveTowards(rc, islandLoc);</b>
+<b class="nc">&nbsp;            if(rc.canPlaceAnchor()) rc.placeAnchor();</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            if (total == 0) {</b>
+<b class="nc">&nbsp;                if (wellLoc != null) {</b>
+<b class="nc">&nbsp;                    MapLocation me = rc.getLocation();</b>
+<b class="nc">&nbsp;                    if (!me.isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);</b>
+<b class="nc">&nbsp;                } else {</b>
+<b class="nc">&nbsp;                    RobotPlayer.moveRandom(rc);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (total == GameConstants.CARRIER_CAPACITY) {</b>
+<b class="nc">&nbsp;                RobotPlayer.moveTowards(rc, hqLoc);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Run a single turn for a Launcher.
+&nbsp;     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
+&nbsp;     */
+&nbsp;    //launchers strategy for sprint 1:
+&nbsp;    //Find Enemy: Locate nearby enemies.
+&nbsp;    //Get Enemy Data: Obtain information about these enemies.
+&nbsp;    //Prioritize by Type: Prioritize the enemies based on their type.
+&nbsp;    //Attack Enemy: Attack the prioritized enemy.
+&nbsp;
+&nbsp;    static void runLauncher(RobotController rc) throws GameActionException {
+<b class="nc">&nbsp;        RobotInfo target = findTargetPriority(rc);</b>
+<b class="nc">&nbsp;        if (target != null &amp;&amp; rc.canAttack(target.location)) {</b>
+<b class="nc">&nbsp;            rc.attack(target.location);</b>
+<b class="nc">&nbsp;            rc.setIndicatorString(&quot;Attacking &quot; + target.location);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            Direction dir = directions[rng.nextInt(directions.length)];</b>
+<b class="nc">&nbsp;            if (rc.canMove(dir)) {</b>
+<b class="nc">&nbsp;                rc.move(dir);</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static RobotInfo findTargetPriority(RobotController rc) throws GameActionException {
+<b class="nc">&nbsp;        RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());</b>
+<b class="nc">&nbsp;        if (enemies.length == 0) return null;</b>
+&nbsp;
+<b class="nc">&nbsp;        RobotInfo prioritizedTarget = null;</b>
+<b class="nc">&nbsp;        double highestPriority = Double.MAX_VALUE;</b>
+<b class="nc">&nbsp;        for (RobotInfo enemy : enemies) {</b>
+<b class="nc">&nbsp;            double priority = calculatePriority(enemy, rc.getLocation());</b>
+<b class="nc">&nbsp;            if (priority &lt; highestPriority) {</b>
+<b class="nc">&nbsp;                highestPriority = priority;</b>
+<b class="nc">&nbsp;                prioritizedTarget = enemy;</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return prioritizedTarget;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static double calculatePriority(RobotInfo enemy, MapLocation myLocation) {
+<b class="nc">&nbsp;        double typePriority = getTypePriority(enemy.type);</b>
+<b class="nc">&nbsp;        double healthFactor = 1.0 / (enemy.health + 1); // Lower health = higher priority</b>
+<b class="nc">&nbsp;        double distanceFactor = 1.0 / myLocation.distanceSquaredTo(enemy.location); // Closer = higher priority</b>
+&nbsp;
+<b class="nc">&nbsp;        return typePriority * healthFactor * distanceFactor;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static int getTypePriority(RobotType type) {
+<b class="nc">&nbsp;        switch (type) {</b>
+<b class="nc">&nbsp;            case CARRIER: return 1;</b>
+<b class="nc">&nbsp;            case AMPLIFIER: return 2;</b>
+<b class="nc">&nbsp;            case LAUNCHER: return 3;</b>
+<b class="nc">&nbsp;            default: return 10;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-02-18 16:45</div>
+</div>
+</body>
+</html>
