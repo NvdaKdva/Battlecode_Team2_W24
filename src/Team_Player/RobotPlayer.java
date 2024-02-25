@@ -140,7 +140,8 @@ public strictfp class RobotPlayer {
         }
         //Makes Carrier right away and every x rounds (x=3)
         // provided not making a launcher every y rounds (y=5)
-        if (rc.getRoundNum() == 0 || rc.getRoundNum() % 5 != 0 && rc.getRoundNum() % 3 == 0) {
+        if (rc.getRoundNum() % 20 == 0) {
+        //if (rc.getRoundNum() == 0 || rc.getRoundNum() % 5 != 0 && rc.getRoundNum() % 3 == 0) {
             rc.setIndicatorString("Trying to build a carrier");
             if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                 rc.buildRobot(RobotType.CARRIER, newLoc);
@@ -163,7 +164,8 @@ public strictfp class RobotPlayer {
         //Determines ideal number of launchers (grid mult / 360 - 1)
         if(turnCount == 0) { maxAmpLim = rc.getMapHeight() * rc.getMapWidth() / 360 - 1; }
         //Makes Amplifiers every 5 rounds after 50 rnds up to max Amp limit
-        if (rc.getRoundNum() > 50 && rc.getRoundNum() % 5 == 0 && estAmplifierCount < maxAmpLim) {
+        if (rc.getRoundNum() % 75 == 0) {
+//        if (rc.getRoundNum() > 50 && rc.getRoundNum() % 5 == 0 && estAmplifierCount < maxAmpLim) {
             rc.setIndicatorString("Trying to build an amplifier");
             if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
                 rc.buildRobot(RobotType.AMPLIFIER, newLoc);
@@ -277,6 +279,15 @@ public strictfp class RobotPlayer {
 
         //Deposit resource to headquarter
         int total = getTotalResource(rc);
+        if (total < GameConstants.CARRIER_CAPACITY && wellsLoc != null && rc.getLocation().distanceSquaredTo(wellsLoc) <= RobotType.CARRIER.actionRadiusSquared) {
+            rc.collectResource(wellsLoc, -1);
+        } else if (total >= GameConstants.CARRIER_CAPACITY || rc.getRoundNum() % 100 == 0) { // Deposit or strategic return
+            moveTowards(rc, hqLoc);
+            if (rc.getLocation().isAdjacentTo(hqLoc)) {
+                depositResource(rc, ResourceType.ADAMANTIUM);
+                depositResource(rc, ResourceType.MANA);
+            }
+        }
         //TODO Don't auto deposit, only deposit if full
         depositResource(rc,ResourceType.ADAMANTIUM);
         depositResource(rc,ResourceType.MANA);
