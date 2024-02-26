@@ -161,7 +161,6 @@ public strictfp class RobotPlayer {
                 estAmplifierCount++;// Note: This count will not decrease when amplifiers are destroyed.
             }
         }
-
         //Makes Carrier right away and every x rounds (x=3)
         // provided not making a launcher every y rounds (y=5)
         if (rc.getRoundNum() % 20 == 0) {
