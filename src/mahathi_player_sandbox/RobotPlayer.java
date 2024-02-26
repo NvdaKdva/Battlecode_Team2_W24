@@ -33,9 +33,20 @@ public strictfp class RobotPlayer {
     static MapLocation wellsLoc;
     static MapLocation islandLoc;
     static boolean anchorMode = false;
+
     /**
      * Array containing all the possible movement directions.
      */
+
+    static RobotController rc;
+    static final int EARLY_GAME_END = 500;
+    static final int MID_GAME_END = 1500;
+    static final double LAUNCHER_CRITICAL_HEALTH_THRESHOLD = 50.0; // Define the critical health threshold
+    static MapLocation hqLocation = null;
+    static int estLauncherCount = 0;
+    static int estAmplifierCount = 0;
+    static int maxAmpLim = 0;
+
     static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -46,11 +57,6 @@ public strictfp class RobotPlayer {
             Direction.WEST,
             Direction.NORTHWEST,
     };
-    static RobotController rc;
-    static final int EARLY_GAME_END = 500;
-    static final int MID_GAME_END = 1500;
-    static final double LAUNCHER_CRITICAL_HEALTH_THRESHOLD = 50.0; // Define the critical health threshold
-    static MapLocation hqLocation = null;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -64,10 +70,10 @@ public strictfp class RobotPlayer {
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
         System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
-        System.out.println("Launcher health is critical (" + rc.getHealth() + "). Retreating to HQ at " + hqLocation);
+        //System.out.println("Launcher health is critical (" + rc.getHealth() + "). Retreating to HQ at " + hqLocation);
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
-        RobotPlayer.rc = rc;
+
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
@@ -129,7 +135,7 @@ public strictfp class RobotPlayer {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
         hqLocation = rc.getLocation();
-        if (rc.canBuildAnchor(Anchor.STANDARD)) {
+        if (rc.getRoundNum() > 150 && rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building anchor! " + rc.getAnchor());
