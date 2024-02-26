@@ -279,15 +279,6 @@ public strictfp class RobotPlayer {
 
         //Deposit resource to headquarter
         int total = getTotalResource(rc);
-        if (total < GameConstants.CARRIER_CAPACITY && wellsLoc != null && rc.getLocation().distanceSquaredTo(wellsLoc) <= RobotType.CARRIER.actionRadiusSquared) {
-            rc.collectResource(wellsLoc, -1);
-        } else if (total >= GameConstants.CARRIER_CAPACITY || rc.getRoundNum() % 100 == 0) { // Deposit or strategic return
-            moveTowards(rc, hqLoc);
-            if (rc.getLocation().isAdjacentTo(hqLoc)) {
-                depositResource(rc, ResourceType.ADAMANTIUM);
-                depositResource(rc, ResourceType.MANA);
-            }
-        }
         //TODO Don't auto deposit, only deposit if full
         depositResource(rc,ResourceType.ADAMANTIUM);
         depositResource(rc,ResourceType.MANA);
