@@ -48,6 +48,9 @@ public strictfp class RobotPlayer {
     static MapLocation wellsLoc;
     static MapLocation islandLoc;
     static boolean anchorMode = false;
+    static boolean booster_update = false;
+    static int[] booster_arr = {0,0,5,5,0,5,10,0,10,5,0,10,10};
+    //element 0 is # of boosters 4 boosters 3 elements #1 alive #2 x coord #3 y coord
 
     /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
@@ -93,11 +96,11 @@ public strictfp class RobotPlayer {
                 // this into a different control structure!
                 switch (rc.getType()) {
                     case HEADQUARTERS:     runHeadquarters(rc);  break;
-                    case CARRIER:      runCarrier(rc);   break;
-                    case LAUNCHER: runLauncher(rc); break;
-                    case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
-                    case DESTABILIZER: // You might want to give them a try!
-                    case AMPLIFIER:    runAmplifier(rc);   break;
+                    case CARRIER:          runCarrier(rc);   break;
+                    case LAUNCHER:         runLauncher(rc); break;
+                    case BOOSTER:          runBooster(rc); break;
+                    case DESTABILIZER:
+                    case AMPLIFIER:        runAmplifier(rc);   break;
                 }
 
             } catch (GameActionException e) {
@@ -138,7 +141,16 @@ public strictfp class RobotPlayer {
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building Standard anchor!");
         }
-        //Determines ideal number of amplifiers (grid mult / 360 - 1)
+
+        if(rc.getRoundNum() % 10 == 0 && booster_arr[0] < 5) {
+            rc.setIndicatorString("Trying to build a booster");
+            if (rc.canBuildRobot(RobotType.BOOSTER, newLoc)) {
+                rc.buildRobot(RobotType.BOOSTER, newLoc);
+                booster_arr[0]++;// Note: This count will not decrease when boosters are destroyed.
+            }
+        }
+
+        //Determines ideal number of launchers (grid mult / 360 - 1)
         if(turnCount == 0) { maxAmpLim = rc.getMapHeight() * rc.getMapWidth() / 360 - 1; }
         //Makes Amplifiers every 5 rounds after 50 rnds up to max Amp limit
         if (rc.getRoundNum() % 75 == 0) {
@@ -362,4 +374,42 @@ public strictfp class RobotPlayer {
             default: return 10;
         }
     }
+
+
+    /**
+     * Run a single turn for a Booster.
+     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
+     */
+    static void runBooster(RobotController rc) throws GameActionException {
+        MapLocation mySpot = null; //TODO move this to globals?
+        //change locations if 60x60 and not updated
+        if(!booster_update) {
+            if(rc.getMapWidth() == 60) {
+                for(int element: booster_arr) { element *= 4;}
+                booster_update = true;
+            }
+        }
+        //find my spot if I don't have one
+        if(rc.getRoundNum() == 1) { //TODO double check this is 1
+            if(booster_arr[10] != 0) { mySpot = new MapLocation(0,0); }
+            else {
+                for (int elem = 1; elem < 11; elem = elem + 3) {
+                    if (elem == 0) {
+                        mySpot = new MapLocation(booster_arr[elem + 1], booster_arr[elem + 2]);
+                        booster_arr[elem] = 1; //update postion taken
+                    }
+                }
+            }
+        }
+        //move to my spot then move randomly near it
+        if(rc.getLocation().isAdjacentTo(mySpot)) {
+            moveRandom(rc);
+        } else {
+           moveTowards(rc,mySpot);
+        }
+
+    }
+
+//    static int[] booster_arr = {0,0,5,5,0,5,10,0,10,5,0,10,10};
+
 }
