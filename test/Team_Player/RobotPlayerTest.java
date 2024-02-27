@@ -49,12 +49,14 @@ public class RobotPlayerTest {
 
         RobotPlayer rp = new RobotPlayer();
 
-        MockRobotController rc = new MockRobotController(20, 20);
+        MockRobotController rc = new MockRobotController(20, 20, 20);
         // Call the method under test
         int actualTotalAmount = robot.getTotalResource(rc);
 
         // Verify the result
-        assertEquals(rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ADAMANTIUM), actualTotalAmount);
+        assertEquals(rc.getResourceAmount(ResourceType.ELIXIR)
+                + rc.getResourceAmount(ResourceType.MANA)
+                + rc.getResourceAmount(ResourceType.ADAMANTIUM), actualTotalAmount);
     }
 
     @Test
@@ -62,7 +64,7 @@ public class RobotPlayerTest {
 
         RobotPlayer rp = new RobotPlayer();
 
-        MockRobotController rc = new MockRobotController(0, 0);
+        MockRobotController rc = new MockRobotController(0, 0, 0);
         // Call the method under test
         int actualTotalAmount = robot.getTotalResource(rc);
 
@@ -122,7 +124,7 @@ public class RobotPlayerTest {
     @Test
     public void testDepositResource() throws GameActionException {
         // Create an instance of our mock class
-        MockRobotController rc = new MockRobotController(20, 20);
+        MockRobotController rc = new MockRobotController(20, 20, 20);
         ResourceType resourceType = ResourceType.ADAMANTIUM;
         int initialCount = rc.getResourceAmount(resourceType);
         RobotPlayer.depositResource(rc, resourceType);
@@ -132,7 +134,7 @@ public class RobotPlayerTest {
     @Test
     public void testDepositResourceZero() throws GameActionException {
         // Create an instance of our mock class
-        MockRobotController rc = new MockRobotController(0, 0);
+        MockRobotController rc = new MockRobotController(0, 0, 0);
         ResourceType resourceType = ResourceType.ADAMANTIUM;
         int initialCount = rc.getResourceAmount(resourceType);
         RobotPlayer.depositResource(rc, resourceType);
@@ -277,7 +279,7 @@ public class RobotPlayerTest {
         robot.hqLoc = new MapLocation(1, 1);
         robot.wellLoc = new MapLocation(2, 2);
         robot.islandLoc = new MapLocation(3, 3);
-        robot.wellsLoc = new MapLocation(4, 4);
+        robot.manaWellLoc = new MapLocation(4, 4);
 
         // Call the method to test
         robot.runCarrier(rc);
@@ -325,6 +327,7 @@ public class RobotPlayerTest {
 
         private int adamantium;
         private int mana;
+        private int elixar;
         private int[] nearByIsland;
         private Team team;
         private MapLocation randomLocation = new MapLocation(0, 0);
@@ -385,9 +388,10 @@ public class RobotPlayerTest {
         }
 
 
-        public MockRobotController(int adamantium, int mana) {
+        public MockRobotController(int adamantium, int mana, int elixar) {
             this.adamantium = adamantium;
             this.mana = mana;
+            this.elixar = elixar;
         }
 
         public MockRobotController(boolean canMoveResult) {
