@@ -138,6 +138,17 @@ public strictfp class RobotPlayer {
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building Standard anchor!");
         }
+        //Determines ideal number of amplifiers (grid mult / 360 - 1)
+        if(turnCount == 0) { maxAmpLim = rc.getMapHeight() * rc.getMapWidth() / 360 - 1; }
+        //Makes Amplifiers every 5 rounds after 50 rnds up to max Amp limit
+        if (rc.getRoundNum() % 75 == 0) {
+//        if (rc.getRoundNum() > 50 && rc.getRoundNum() % 5 == 0 && estAmplifierCount < maxAmpLim) {
+            rc.setIndicatorString("Trying to build an amplifier");
+            if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
+                rc.buildRobot(RobotType.AMPLIFIER, newLoc);
+                estAmplifierCount++;// Note: This count will not decrease when amplifiers are destroyed.
+            }
+        }
         //Makes Carrier right away and every x rounds (x=3)
         // provided not making a launcher every y rounds (y=5)
         if (rc.getRoundNum() % 5 == 0) {
@@ -159,17 +170,6 @@ public strictfp class RobotPlayer {
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
                 estLauncherCount++; // Note: This count will not decrease when launchers are destroyed.
-            }
-        }
-        //Determines ideal number of launchers (grid mult / 360 - 1)
-        if(turnCount == 0) { maxAmpLim = rc.getMapHeight() * rc.getMapWidth() / 360 - 1; }
-        //Makes Amplifiers every 5 rounds after 50 rnds up to max Amp limit
-        if (rc.getRoundNum() % 75 == 0) {
-//        if (rc.getRoundNum() > 50 && rc.getRoundNum() % 5 == 0 && estAmplifierCount < maxAmpLim) {
-            rc.setIndicatorString("Trying to build an amplifier");
-            if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
-                rc.buildRobot(RobotType.AMPLIFIER, newLoc);
-                estAmplifierCount++;// Note: This count will not decrease when amplifiers are destroyed.
             }
         }
     }
