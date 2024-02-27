@@ -1,6 +1,7 @@
 package Team_Player;
 
 import battlecode.common.*;
+import battlecode.world.Well;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -45,12 +46,11 @@ public strictfp class RobotPlayer {
     static final Random rng = new Random(6147);
     static MapLocation hqLoc;
     static MapLocation wellLoc;
-    static MapLocation wellsLoc;
+    static MapLocation manaWellLoc;
     static MapLocation islandLoc;
     static boolean anchorMode = false;
-    static boolean booster_update = false;
-    static int[] booster_arr = {0,0,5,5,0,5,10,0,10,5,0,10,10};
-    //element 0 is # of boosters 4 boosters 3 elements #1 alive #2 x coord #3 y coord
+    static MapLocation mySpot;
+    static boolean elixarWellMade = false;
 
     /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
@@ -142,11 +142,11 @@ public strictfp class RobotPlayer {
             rc.setIndicatorString("Building Standard anchor!");
         }
 
-        if(rc.getRoundNum() % 10 == 0 && booster_arr[0] < 5) {
+        if(rc.getRoundNum() % 10 == 0 && rc.readSharedArray(1) < 18) {
             rc.setIndicatorString("Trying to build a booster");
             if (rc.canBuildRobot(RobotType.BOOSTER, newLoc)) {
                 rc.buildRobot(RobotType.BOOSTER, newLoc);
-                booster_arr[0]++;// Note: This count will not decrease when boosters are destroyed.
+                rc.writeSharedArray(1,rc.readSharedArray(1)+1);
             }
         }
 
@@ -191,10 +191,15 @@ public strictfp class RobotPlayer {
         scanIslands(rc);
         scanHQ(rc);
         scanWells(rc);
+        //Why are we sending them to clog up islands, wells and the HQ.
+        //Why do we never use them to communicate
+        //Why are we building more than 10?
 
         // Move towards island
         if (islandLoc != null) {
-            moveTowards(rc, islandLoc);
+            if(rc.getLocation().directionTo(islandLoc) == Direction.CENTER) { rc.setIndicatorString("Trying to move to where I am, I'm a bad robot. "); moveRandom(rc);}
+            else
+                moveTowards(rc, islandLoc);
         }
         // Scan for nearby amplifiers
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
@@ -202,11 +207,17 @@ public strictfp class RobotPlayer {
             if (robot.getType() == RobotType.AMPLIFIER) {
                 // Move towards the well if found nearby
                 if (wellLoc != null) {
-                    moveTowards(rc, wellLoc);
+                    if(rc.getLocation().directionTo(wellLoc) == Direction.CENTER) {
+                        rc.setIndicatorString("Trying to move to where I am, I'm a bad robot. ");
+                        moveRandom(rc);
+                    } else { moveTowards(rc, wellLoc);}
                 }
                 // Move towards HQ if another amplifier is found near the well
                 if (hqLoc != null) {
-                    moveTowards(rc, hqLoc);
+                    if(rc.getLocation().directionTo(hqLoc) == Direction.CENTER) {
+                        rc.setIndicatorString("Trying to move to where I am, I'm a bad robot. ");
+                        moveRandom(rc);
+                    } else { moveTowards(rc, hqLoc);}
                 }
             }
         }
@@ -232,6 +243,17 @@ public strictfp class RobotPlayer {
     static void moveTowards(RobotController rc, MapLocation loc) throws GameActionException {
         Direction dir = rc.getLocation().directionTo(loc);
         if(rc.canMove(dir)) rc.move(dir);
+        else moveNextBest(rc, dir);
+    }
+
+    /** If robot can not move in the best direction tries the next in the direction array,
+     *  then the one before in direction array before moving in random direction.
+     */
+    static void moveNextBest(RobotController rc, Direction dir1) throws GameActionException {
+        Direction dir2 = directions[(Arrays.binarySearch(directions,dir1) + 1) % directions.length];
+        Direction dir3 = directions[(Arrays.binarySearch(directions,dir1) + directions.length - 1) % directions.length];
+        if(rc.canMove(dir2)) rc.move(dir2);
+        else if(rc.canMove(dir3)) rc.move(dir3);
         else moveRandom(rc);
     }
 
@@ -248,7 +270,19 @@ public strictfp class RobotPlayer {
     static void scanWells(RobotController rc) throws GameActionException{
         WellInfo[] wells = rc.senseNearbyWells();
         if (wells.length > 0) {
-            wellsLoc = wells[0].getMapLocation();
+            wellLoc = wells[0].getMapLocation();
+        }
+    }
+
+    static void scanManaWell(RobotController rc) throws GameActionException{
+        WellInfo[] wells = rc.senseNearbyWells();
+        if (wells.length > 0) {
+            for(WellInfo well: wells) {
+                if(well.getResourceType() == ResourceType.MANA) {
+                    manaWellLoc = well.getMapLocation();
+                    break;
+                }
+            }
         }
     }
 
@@ -263,7 +297,7 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-    }
+    }//OMG THIS RETURNS NOTHING TOO
 
     static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
         int amount = rc.getResourceAmount(type);
@@ -275,7 +309,9 @@ public strictfp class RobotPlayer {
     }
 
     static int getTotalResource(RobotController rc){
-        return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA);
+        return rc.getResourceAmount(ResourceType.ADAMANTIUM)
+                + rc.getResourceAmount(ResourceType.MANA)
+                + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 
     //CARRIER ALGO
@@ -283,27 +319,51 @@ public strictfp class RobotPlayer {
         if(hqLoc == null) scanHQ(rc);
         if(wellLoc == null) scanWells(rc);
         if(islandLoc == null) scanIslands(rc);
-        if(wellsLoc == null) scanWells(rc);
+        if(manaWellLoc == null) scanManaWell(rc);
 
         //Collect from well if close and inventory not full
-        if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1))
-            rc.collectResource(wellsLoc, -1);
+        if (wellLoc != null && rc.canCollectResource(wellLoc, -1)) { rc.collectResource(wellLoc, -1); }
+
+        //After round X start making an Elixir well from an mana well
+        if(manaWellLoc != null) {
+            if(rc.canSenseLocation(manaWellLoc)) {
+                if (rc.getRoundNum() > 0 &&
+                    !elixarWellMade &&
+                    rc.getResourceAmount(ResourceType.ADAMANTIUM) >= 30 &&
+                    rc.readSharedArray(0) != 1 &&
+                    rc.senseWell(manaWellLoc).getResourceType() != ResourceType.ELIXIR
+                ) {
+                    rc.setIndicatorString("Attempting to deposit Ad in Mn well");
+                    while (!manaWellLoc.isAdjacentTo(rc.getLocation())) {
+                        moveTowards(rc, manaWellLoc);
+                    }
+                    rc.transferResource(manaWellLoc, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
+                    if (rc.senseWell(manaWellLoc).getResourceType() == ResourceType.ELIXIR) {
+                        elixarWellMade = true;
+                        if (rc.canWriteSharedArray(0, 1)) rc.writeSharedArray(0, 1);
+                    }
+                }
+            }
+        }
 
         //Deposit resource to headquarter
         int total = getTotalResource(rc);
-        //TODO Don't auto deposit, only deposit if full
         depositResource(rc,ResourceType.ADAMANTIUM);
         depositResource(rc,ResourceType.MANA);
+        depositResource(rc,ResourceType.ELIXIR);
 
         if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)){
             rc.takeAnchor(hqLoc,Anchor.STANDARD);
             anchorMode = true;
         }
-        if(anchorMode){
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+        if(anchorMode) {
+            rc.setIndicatorString("This team misses little stuff like this " + rc.getAnchor());
             if(islandLoc == null) RobotPlayer.moveRandom(rc);
             else RobotPlayer.moveTowards(rc, islandLoc);
-            if(rc.canPlaceAnchor()) rc.placeAnchor();
+            if(rc.canPlaceAnchor()) {
+                rc.placeAnchor();
+                anchorMode = false; //they will leave islands after placing now. You're welcome
+            }
         } else {
             if (total == 0) {
                 if (wellLoc != null) {
@@ -381,35 +441,69 @@ public strictfp class RobotPlayer {
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     static void runBooster(RobotController rc) throws GameActionException {
-        MapLocation mySpot = null; //TODO move this to globals?
-        //change locations if 60x60 and not updated
-        if(!booster_update) {
-            if(rc.getMapWidth() == 60) {
-                for(int element: booster_arr) { element *= 4;}
-                booster_update = true;
+        int[] booster_arr = {5,5,5,10,5,15,10,5,10,10,10,15,15,5,15,10,15,15};
+
+        //change locations if not 20x20
+        if(turnCount == 1) {
+            int w4th = rc.getMapWidth(), h4th = rc.getMapHeight();
+            if(w4th != 20 && h4th != 20) {
+                w4th = w4th/4;
+                h4th = h4th/4;
+                booster_arr[0] = w4th;
+                booster_arr[1] = h4th;
+                booster_arr[2] = w4th;
+                booster_arr[3] = h4th * 2;
+                booster_arr[4] = w4th;
+                booster_arr[5] = h4th * 3;
+                booster_arr[6] = w4th * 2;
+                booster_arr[7] = h4th;
+                booster_arr[8] = w4th * 2;
+                booster_arr[9] = h4th * 2;
+                booster_arr[10] = w4th * 2;
+                booster_arr[11] = h4th * 3;
+                booster_arr[12] = w4th * 3;
+                booster_arr[13] = h4th;
+                booster_arr[14] = w4th * 3;
+                booster_arr[15] = h4th * 2;
+                booster_arr[16] = w4th * 3;
+                booster_arr[17] = h4th * 3;
+            }
+
+            //find my spot if I don't have one
+            int spot = rc.readSharedArray(1);
+            switch(spot % 9) {
+                case 0:
+                    mySpot = new MapLocation(booster_arr[0],booster_arr[1]);
+                    break;
+                case 1:
+                    mySpot = new MapLocation(booster_arr[2],booster_arr[3]);
+                    break;
+                case 2:
+                    mySpot = new MapLocation(booster_arr[4],booster_arr[5]);
+                    break;
+                case 3:
+                    mySpot = new MapLocation(booster_arr[6],booster_arr[7]);
+                    break;
+                case 4:
+                    mySpot = new MapLocation(booster_arr[8],booster_arr[9]);
+                    break;
+                case 5:
+                    mySpot = new MapLocation(booster_arr[10],booster_arr[11]);
+                    break;
+                case 6:
+                    mySpot = new MapLocation(booster_arr[12],booster_arr[13]);
+                    break;
+                case 7:
+                    mySpot = new MapLocation(booster_arr[14],booster_arr[15]);
+                    break;
+                case 8:
+                    mySpot = new MapLocation(booster_arr[16],booster_arr[17]);
+                    break;
             }
         }
-        //find my spot if I don't have one
-        if(rc.getRoundNum() == 1) { //TODO double check this is 1
-            if(booster_arr[10] != 0) { mySpot = new MapLocation(0,0); }
-            else {
-                for (int elem = 1; elem < 11; elem = elem + 3) {
-                    if (elem == 0) {
-                        mySpot = new MapLocation(booster_arr[elem + 1], booster_arr[elem + 2]);
-                        booster_arr[elem] = 1; //update postion taken
-                    }
-                }
-            }
-        }
+
         //move to my spot then move randomly near it
-        if(rc.getLocation().isAdjacentTo(mySpot)) {
-            moveRandom(rc);
-        } else {
-           moveTowards(rc,mySpot);
-        }
-
+        if(!rc.getLocation().isAdjacentTo(mySpot)) { moveTowards(rc,mySpot); }
+        else { moveRandom(rc); }
     }
-
-//    static int[] booster_arr = {0,0,5,5,0,5,10,0,10,5,0,10,10};
-
 }
