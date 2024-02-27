@@ -134,13 +134,13 @@ public strictfp class RobotPlayer {
         MapLocation newLoc = rc.getLocation().add(dir);
 
         //Only makes Standard Anchors and if after round 150
-        if (rc.getRoundNum() > 150 && rc.canBuildAnchor(Anchor.STANDARD)) {
+        if (rc.getRoundNum() > 70 && rc.canBuildAnchor(Anchor.STANDARD)) {
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building Standard anchor!");
         }
         //Makes Carrier right away and every x rounds (x=3)
         // provided not making a launcher every y rounds (y=5)
-        if (rc.getRoundNum() % 20 == 0) {
+        if (rc.getRoundNum() % 5 == 0) {
         //if (rc.getRoundNum() == 0 || rc.getRoundNum() % 5 != 0 && rc.getRoundNum() % 3 == 0) {
             rc.setIndicatorString("Trying to build a carrier");
             if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
@@ -280,33 +280,62 @@ public strictfp class RobotPlayer {
         //Deposit resource to headquarter
         int total = getTotalResource(rc);
         //TODO Don't auto deposit, only deposit if full
-        depositResource(rc,ResourceType.ADAMANTIUM);
-        depositResource(rc,ResourceType.MANA);
-
-        if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)){
+        if (!anchorMode || total == GameConstants.CARRIER_CAPACITY) {
+            depositResource(rc, ResourceType.ADAMANTIUM);
+            depositResource(rc, ResourceType.MANA);
+        }
+//        if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)){
+        if (!anchorMode && rc.canTakeAnchor(hqLoc, Anchor.STANDARD) && shouldTakeAnchorForIsland(rc)) {
             rc.takeAnchor(hqLoc,Anchor.STANDARD);
             anchorMode = true;
         }
         if(anchorMode){
             rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-            if(islandLoc == null) RobotPlayer.moveRandom(rc);
-            else RobotPlayer.moveTowards(rc, islandLoc);
-            if(rc.canPlaceAnchor()) rc.placeAnchor();
-        } else {
-            if (total == 0) {
-                if (wellLoc != null) {
-                    MapLocation me = rc.getLocation();
-                    if (!me.isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);
-                } else {
-                    RobotPlayer.moveRandom(rc);
-                }
+            if(islandLoc == null){
+//              RobotPlayer.moveRandom(rc);
+                approachIslandForAnchorPlacement(rc, islandLoc);
+                
             }
+            else {
+                RobotPlayer.moveTowards(rc, islandLoc);
+            }
+            if(rc.canPlaceAnchor()) rc.placeAnchor();
+
+//        else {
+//            if (total == 0) {
+//                moveToResourceWellIfNeeded(rc, wellLoc);
+//            }
+            else if (total == GameConstants.CARRIER_CAPACITY) {
+                RobotPlayer.moveTowards(rc, hqLoc);
+            }
+//                if (wellLoc != null) {
+//                    MapLocation me = rc.getLocation();
+//                    if (!me.isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);
+//                } else {
+//                    RobotPlayer.moveRandom(rc);
+//                }
             if (total == GameConstants.CARRIER_CAPACITY) {
                 RobotPlayer.moveTowards(rc, hqLoc);
             }
         }
     }
 
+    private static void approachIslandForAnchorPlacement(RobotController rc, MapLocation islandLoc) throws GameActionException {
+        RobotPlayer.moveTowards(rc, islandLoc);
+    }
+    private static boolean shouldTakeAnchorForIsland(RobotController rc) {
+
+        return true;
+    }
+
+    private static void moveToResourceWellIfNeeded(RobotController rc, MapLocation wellLoc) throws GameActionException {
+        if (wellLoc != null) {
+            MapLocation me = rc.getLocation();
+            if (!me.isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);
+        } else {
+            RobotPlayer.moveRandom(rc);
+        }
+    }
     /**
      * Run a single turn for a Launcher.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
