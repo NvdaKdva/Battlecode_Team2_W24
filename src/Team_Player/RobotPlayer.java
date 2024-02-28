@@ -134,7 +134,7 @@ public strictfp class RobotPlayer {
         MapLocation newLoc = rc.getLocation().add(dir);
 
         //Only makes Standard Anchors and if after round 150
-        if (rc.getRoundNum() % 35 == 0 && rc.canBuildAnchor(Anchor.STANDARD)) {
+        if (rc.getRoundNum() > 150 && rc.canBuildAnchor(Anchor.STANDARD)) {
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building Standard anchor!");
         }
@@ -151,7 +151,7 @@ public strictfp class RobotPlayer {
         }
         //Makes Carrier right away and every x rounds (x=3)
         // provided not making a launcher every y rounds (y=5)
-        if (rc.getRoundNum() % 5 == 0) {
+        if (rc.getRoundNum() % 20 == 0) {
         //if (rc.getRoundNum() == 0 || rc.getRoundNum() % 5 != 0 && rc.getRoundNum() % 3 == 0) {
             rc.setIndicatorString("Trying to build a carrier");
             if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
@@ -268,10 +268,10 @@ public strictfp class RobotPlayer {
 
     //CARRIER ALGO
     static void runCarrier(RobotController rc) throws GameActionException {
-        if (hqLoc == null) scanHQ(rc);
-        if (wellLoc == null) scanWells(rc);
-        if (islandLoc == null) scanIslands(rc);
-        if (wellsLoc == null) scanWells(rc);
+        if(hqLoc == null) scanHQ(rc);
+        if(wellLoc == null) scanWells(rc);
+        if(islandLoc == null) scanIslands(rc);
+        if(wellsLoc == null) scanWells(rc);
 
         //Collect from well if close and inventory not full
         if (wellsLoc != null && rc.canCollectResource(wellsLoc, -1))
@@ -280,32 +280,19 @@ public strictfp class RobotPlayer {
         //Deposit resource to headquarter
         int total = getTotalResource(rc);
         //TODO Don't auto deposit, only deposit if full
-        depositResource(rc, ResourceType.ADAMANTIUM);
-        depositResource(rc, ResourceType.MANA);
+        depositResource(rc,ResourceType.ADAMANTIUM);
+        depositResource(rc,ResourceType.MANA);
+
         if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)){
-            rc.takeAnchor(hqLoc, Anchor.STANDARD);
+            rc.takeAnchor(hqLoc,Anchor.STANDARD);
+            anchorMode = true;
         }
-        else{
-            rc.setIndicatorString("No anchors set!");
-        }
-
-//        if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)){
-//            rc.takeAnchor(hqLoc,Anchor.STANDARD);
-//            //anchorMode = true;
-//    }
-
-        if (rc.getAnchor() != null || rc.getAnchor() == Anchor.STANDARD || rc.getAnchor() == Anchor.ACCELERATING) {
-        //if(anchorMode){
+        if(anchorMode){
             rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-            //if(islandLoc == null) RobotPlayer.moveRandom(rc);
-            if(islandLoc != null && rc.canPlaceAnchor()) {
-                rc.placeAnchor();
-                System.out.println("Placed anchor");
-                System.out.println(rc.getRoundNum());
-            }
-//            else RobotPlayer.moveTowards(rc, islandLoc);
-            else RobotPlayer.moveRandom(rc);
-            //if(rc.canPlaceAnchor()) rc.placeAnchor();
+            if(islandLoc == null) RobotPlayer.moveRandom(rc);
+            else RobotPlayer.moveTowards(rc, islandLoc);
+            if(rc.canPlaceAnchor()) rc.placeAnchor();
+        } else {
             if (total == 0) {
                 if (wellLoc != null) {
                     MapLocation me = rc.getLocation();
@@ -319,6 +306,7 @@ public strictfp class RobotPlayer {
             }
         }
     }
+
     /**
      * Run a single turn for a Launcher.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
