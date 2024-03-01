@@ -7,11 +7,12 @@ public class Map {
             "Open", "Wall", "Cloud", "HQ", "Island", "Current",
     };
 
-    public MapSquare[][] arenaMap;
+    private MapSquare[][] arenaMap;
 
     private class MapSquare {
         /** Attributes of a square */
         private int[] sqCords;  //(X,Y) cord of square
+        private MapLocation cords;
         private String type; //e.g. open, island, wall, HQ, well
         private boolean mapped = false; //has this robot mapped this
         private Direction currDir = null; //direction of current if any
@@ -19,10 +20,16 @@ public class Map {
         private String FOFid = "";
 
         /** Functions for a square */
+        public MapSquare() {}
+
         public MapSquare(int height, int width) {
-            sqCords = new int[2];
-            sqCords[0] = height;
-            sqCords[1] = width;
+            this.sqCords = new int[2];
+            this.sqCords[0] = height;
+            this.sqCords[1] = width;
+        }
+
+        private void setCords(int height, int width) {
+            cords = new MapLocation(width,height);
         }
 
         public void setSqType(RobotController rc, MapInfo info) throws GameActionException {
@@ -52,12 +59,12 @@ public class Map {
 
     }
 
-
     public void createMap(int width, int height) {
-        this.arenaMap = new MapSquare[width][height];
+        arenaMap = new MapSquare[width][height];
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                this.arenaMap[i][j] = new MapSquare(i,j);
+                //arenaMap[i][j] = new MapSquare(i,j);
+                arenaMap[i][j].setCords(i,j);
             }
         }
     }
