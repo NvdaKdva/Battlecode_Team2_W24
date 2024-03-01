@@ -34,10 +34,12 @@ public class Carrier {
                     while (!manaWellLoc.isAdjacentTo(rc.getLocation())) {
                         Shared.moveTowards(rc, manaWellLoc);
                     }
-                    rc.transferResource(manaWellLoc, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
-                    if (rc.senseWell(manaWellLoc).getResourceType() == ResourceType.ELIXIR) {
-                        elixirWellMade = true;
-                        if (rc.canWriteSharedArray(0, 1)) rc.writeSharedArray(0, 1);
+                    if(!(rc.getActionCooldownTurns() > 0)) {
+                        rc.transferResource(manaWellLoc, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
+                        if (rc.senseWell(manaWellLoc).getResourceType() == ResourceType.ELIXIR) {
+                            elixirWellMade = true;
+                            if (rc.canWriteSharedArray(0, 1)) rc.writeSharedArray(0, 1);
+                        }
                     }
                 }
             }
