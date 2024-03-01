@@ -16,16 +16,16 @@ public class Booster {
             if(w4th != 20 && h4th != 20) {
                 w4th = w4th/4;
                 h4th = h4th/4;
-                booster_arr[0] = w4th;
-                booster_arr[1] = h4th;
-                booster_arr[2] = w4th;
-                booster_arr[3] = h4th * 2;
-                booster_arr[4] = w4th;
-                booster_arr[5] = h4th * 3;
-                booster_arr[6] = w4th * 2;
-                booster_arr[7] = h4th;
-                booster_arr[8] = w4th * 2;
-                booster_arr[9] = h4th * 2;
+                booster_arr[0]  = w4th;
+                booster_arr[1]  = h4th;
+                booster_arr[2]  = w4th;
+                booster_arr[3]  = h4th * 2;
+                booster_arr[4]  = w4th;
+                booster_arr[5]  = h4th * 3;
+                booster_arr[6]  = w4th * 2;
+                booster_arr[7]  = h4th;
+                booster_arr[8]  = w4th * 2;
+                booster_arr[9]  = h4th * 2;
                 booster_arr[10] = w4th * 2;
                 booster_arr[11] = h4th * 3;
                 booster_arr[12] = w4th * 3;
