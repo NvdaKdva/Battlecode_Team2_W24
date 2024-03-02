@@ -24,7 +24,9 @@ public class Headquarters {
 
     /** Run a single turn for a Headquarters.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn. */
-    static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
+    static void runHeadquarters(RobotController rc, int turnCount, Map myMap) throws GameActionException {
+        if(turnCount <= 3) myMap.updateMap(rc, turnCount);
+
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);

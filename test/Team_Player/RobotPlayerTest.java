@@ -223,8 +223,9 @@ public class RobotPlayerTest {
     public void testBuildAnchor() throws GameActionException {
         // Round 160, can build anchor
         MockRobotController rc = new MockRobotController(160, true, true);
-        int turnNum = 0;
-        Headquarters.runHeadquarters(rc, turnNum);
+        int turnNum = 2;
+        Map myMap= new Map(20,20);
+        Headquarters.runHeadquarters(rc, turnNum, myMap);
         // Verify that buildAnchor method was called
         assertTrue(true); // Assertion just to indicate that buildAnchor was called
     }
@@ -232,8 +233,9 @@ public class RobotPlayerTest {
     public void testBuildCarrier() throws GameActionException {
         // Round 3, can build carrier //TODO <- THIS IS INCORRECT
         MockRobotController rc = new MockRobotController(3, true, true);
-        int turnNum = 0;
-        Headquarters.runHeadquarters(rc, turnNum);
+        int turnNum = 1;
+        Map myMap= new Map(20,20);
+        Headquarters.runHeadquarters(rc, turnNum, myMap);
         // Verify that buildRobot method was called with RobotType.CARRIER
         assertTrue(true); // Assertion just to indicate that buildRobot was called
     }
@@ -241,8 +243,9 @@ public class RobotPlayerTest {
     public void testNoBuildAnchor() throws GameActionException {
         // Round 140, cannot build anchor
         MockRobotController rc = new MockRobotController(140, false, true);
-        int turnNum = 0;
-        Headquarters.runHeadquarters(rc, turnNum);
+        int turnNum = 1;
+        Map myMap= new Map(20,20);
+        Headquarters.runHeadquarters(rc, turnNum, myMap);
         // Ensure that buildAnchor method was not called
         assertTrue(true); // Assertion just to indicate that buildAnchor was not called
     }
@@ -251,8 +254,9 @@ public class RobotPlayerTest {
     public void testNoBuildCarrier() throws GameActionException {
         // Round 6, cannot build carrier
         MockRobotController rc = new MockRobotController(6, true, false);
-        int turnNum = 0;
-        Headquarters.runHeadquarters(rc, turnNum);
+        int turnNum = 1;
+        Map myMap= new Map(20,20);
+        Headquarters.runHeadquarters(rc, turnNum, myMap);
         // Ensure that buildRobot method was not called
         assertTrue(true); // Assertion just to indicate that buildRobot was not called
     }
@@ -261,8 +265,9 @@ public class RobotPlayerTest {
     public void testBuildBoth() throws GameActionException {
         // Round 150, can build anchor; Round 3, can build carrier
         MockRobotController rc = new MockRobotController(150, true, true);
-        int turnNum = 0;
-        Headquarters.runHeadquarters(rc, turnNum);
+        int turnNum = 1;
+        Map myMap= new Map(20,20);
+        Headquarters.runHeadquarters(rc, turnNum, myMap);
         // Ensure that both buildAnchor and buildRobot methods were called
         assertTrue(true); // Assertion just to indicate that both methods were called
     }
@@ -270,8 +275,9 @@ public class RobotPlayerTest {
     public void testNoBuildAny() throws GameActionException {
         // Round 1, cannot build anchor or carrier
         MockRobotController rc = new MockRobotController(1, false, false);
-        int turnNum = 0;
-        Headquarters.runHeadquarters(rc, turnNum);
+        int turnNum = 1;
+        Map myMap= new Map(20,20);
+        Headquarters.runHeadquarters(rc, turnNum, myMap);
         // Ensure that neither buildAnchor nor buildRobot method was called
         assertTrue(true); // Assertion just to indicate that neither method was called
     }
@@ -281,6 +287,9 @@ public class RobotPlayerTest {
         // Create a mock RobotController
         MockRobotController rc = new MockRobotController();
 
+        int turnCount = 2;
+        Map myMap = new Map(20,20);
+
         // Set up necessary mock behavior
         Carrier.hqLoc = new MapLocation(1, 1);
         Carrier.wellLoc = new MapLocation(2, 2);
@@ -288,11 +297,11 @@ public class RobotPlayerTest {
         Carrier.manaWellLoc = new MapLocation(4, 4);
 
         // Call the method to test
-        Carrier.runCarrier(rc);
+        Carrier.runCarrier(rc, turnCount, myMap);
 
 
         // Verify that the robot attempts to move towards the island location
-        assertFalse(rc.indicatorString.startsWith("Building anchor! " + Anchor.STANDARD));
+        assertFalse(rc.indicatorString.startsWith("Trying to place an Anchor"));
         assertNotEquals(1, rc.moveTowardsCalls); // Ensure moveTowards was called once
 
 
@@ -302,6 +311,8 @@ public class RobotPlayerTest {
     public void testRunAmplifier() throws GameActionException {
         // Create a mock RobotController
         MockRobotController rc = new MockRobotController();
+        int turnCount = 1;
+        Map myMap = new Map(20, 20);
 
         // Set up mock locations
         robot.islandLoc = new MapLocation(10, 10);
@@ -316,7 +327,7 @@ public class RobotPlayerTest {
         rc.setNearbyRobots(nearbyRobots);
 
         // Call the method to test
-        Amplifier.runAmplifier(rc);
+        Amplifier.runAmplifier(rc, turnCount, myMap);
 
         // Check if the robot moved towards the island
         assertNotEquals(robot.islandLoc, rc.moveTowardsLocation);
@@ -325,12 +336,11 @@ public class RobotPlayerTest {
     // Define a simple mock class for RobotController
 
     public static class MockRobotController implements RobotController {
+        public RobotType type;
         public MapLocation moveTowardsLocation;
         private MapLocation wellLoc;
         private MapLocation hqLoc;
         private MapLocation islandLoc;
-
-
         private int adamantium;
         private int mana;
         private int elixar;
@@ -406,7 +416,6 @@ public class RobotPlayerTest {
         }
 
         public MockRobotController() {
-
         }
 
         public int getAdamantium() {

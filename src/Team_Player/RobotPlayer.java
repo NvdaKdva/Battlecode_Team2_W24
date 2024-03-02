@@ -46,6 +46,8 @@ public strictfp class RobotPlayer {
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
 
+        Map myMap = new Map(rc.getMapWidth(), rc.getMapHeight());
+
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
@@ -59,15 +61,15 @@ public strictfp class RobotPlayer {
                 // different types. Here, we separate the control depending on the RobotType, so we can
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
-                switch (rc.getType()) {
-                    case HEADQUARTERS:     Headquarters.runHeadquarters(rc, turnCount);    break;
-                    case CARRIER:          Carrier.runCarrier(rc);              break;
-                    case LAUNCHER:         Launcher.runLauncher(rc);            break;
-                    case BOOSTER:          Booster.runBooster(rc,turnCount);    break;
-                    case DESTABILIZER:
-                    case AMPLIFIER:        Amplifier.runAmplifier(rc);          break;
-                }
 
+                switch (rc.getType()) {
+                    case HEADQUARTERS:     Headquarters.runHeadquarters(rc, turnCount, myMap);  break;
+                    case CARRIER:          Carrier.runCarrier(rc, turnCount, myMap);            break;
+                    case LAUNCHER:         Launcher.runLauncher(rc,turnCount, myMap);           break;
+                    case BOOSTER:          Booster.runBooster(rc,turnCount, myMap);             break;
+                    case DESTABILIZER:
+                    case AMPLIFIER:        Amplifier.runAmplifier(rc, turnCount, myMap);        break;
+                }
             } catch (GameActionException e) {
                 // Oh-no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
