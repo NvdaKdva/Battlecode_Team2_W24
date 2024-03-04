@@ -6,9 +6,11 @@ public class Booster {
     /** Run a single turn for a Booster.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn. */
     static MapLocation mySpot;
+    static int[] booster_arr = {5,5,5,10,5,15,10,5,10,10,10,15,15,5,15,10,15,15};
 
-    static void runBooster(RobotController rc, int turnCount) throws GameActionException {
-        int[] booster_arr = {5,5,5,10,5,15,10,5,10,10,10,15,15,5,15,10,15,15};
+    static void runBooster(RobotController rc, int turnCount, Map myMap) throws GameActionException {
+
+        myMap.updateMap(rc, turnCount);
 
         //change locations if not 20x20
         if(turnCount == 1) {

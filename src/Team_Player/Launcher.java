@@ -5,7 +5,10 @@ import battlecode.common.*;
 public class Launcher {
     /** Run a single turn for a Launcher.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn. */
-    static void runLauncher(RobotController rc) throws GameActionException {
+
+    static void runLauncher(RobotController rc, int turnCount, Map myMap) throws GameActionException {
+        myMap.updateMap(rc, turnCount);
+
         RobotInfo target = findTargetPriority(rc);
         if (target != null && rc.canAttack(target.location)) {
             rc.attack(target.location);
