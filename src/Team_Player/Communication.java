@@ -73,6 +73,81 @@ class Communication {
         }
     }
 
+    static void updateIslandInfo(RobotController rc, int id) throws GameActionException {
+        if (headquarterLocs[0] == null) {
+            return;
+        }
+        MapLocation closestIslandLoc = null;
+        int closestDistance = -1;
+        MapLocation[] islandLocs = rc.senseNearbyIslandLocations(id);
+        for (MapLocation loc : islandLocs) {
+            int distance = headquarterLocs[0].distanceSquaredTo(loc);
+            if (closestIslandLoc == null || distance < closestDistance) {
+                closestDistance = distance;
+                closestIslandLoc = loc;
+            }
+        }
+        // Remember reading is cheaper than writing so we don't want to write without knowing if it's helpful
+        int idx = id + STARTING_ISLAND_IDX;
+        int oldIslandValue = rc.readSharedArray(idx);
+        int updatedIslandValue = bitPackIslandInfo(rc, idx, closestIslandLoc);
+        if (oldIslandValue != updatedIslandValue) {
+            Message msg = new Message(idx, updatedIslandValue, RobotPlayer.turnCount);
+            messagesQueue.add(msg);
+        }
+    }
+
+    static int bitPackIslandInfo(RobotController rc, int islandId, MapLocation closestLoc) {
+        int islandInt = locationToInt(rc, closestLoc);
+        islandInt = islandInt << (TOTAL_BITS - MAPLOC_BITS);
+        try {
+            Team teamHolding = rc.senseTeamOccupyingIsland(islandId);
+            islandInt += teamHolding.ordinal() << (TOTAL_BITS - MAPLOC_BITS - TEAM_BITS);
+            int islandHealth = rc.senseAnchorPlantedHealth(islandId);
+            int healthEncoding = (int) Math.ceil((double) islandHealth / HEALTH_SIZE);
+            islandInt += healthEncoding;
+            return islandInt;
+        } catch (GameActionException e) {
+            return islandInt;
+        }
+    }
+
+    static Team readTeamHoldingIsland(RobotController rc, int islandId) {
+        try {
+            islandId = islandId + STARTING_ISLAND_IDX;
+            int islandInt = rc.readSharedArray(islandId);
+            int healthMask = 0b111;
+            int health = islandInt & healthMask;
+            int team = (islandInt >> HEALTH_BITS) % 0b1;
+            if (health > 0) {
+                return Team.values()[team];
+            }
+        } catch (GameActionException e) {}
+        return Team.NEUTRAL;
+    }
+
+    static MapLocation readIslandLocation(RobotController rc, int islandId) {
+        try {
+            islandId = islandId + STARTING_ISLAND_IDX;
+            int islandInt = rc.readSharedArray(islandId);
+            int idx = islandInt >> (HEALTH_BITS + TEAM_BITS);
+            return intToLocation(rc, idx);
+        } catch (GameActionException e) {}
+        return null;
+    }
+
+    static int readMaxIslandHealth(RobotController rc, int islandId) {
+        try {
+            islandId = islandId + STARTING_ISLAND_IDX;
+            int islandInt = rc.readSharedArray(islandId);
+            int healthMask = 0b111;
+            int health = islandInt & healthMask;
+            return health*HEALTH_SIZE;
+        } catch (GameActionException e) {
+            return -1;
+        }
+    }
+
     // for each enemy location stored, delete of : 1.robot can see it 2.no enemy on location
     static void clearObsoleteEnemies(RobotController rc) {
         for (int i = STARTING_ENEMY_IDX; i < GameConstants.SHARED_ARRAY_LENGTH; i++) {
