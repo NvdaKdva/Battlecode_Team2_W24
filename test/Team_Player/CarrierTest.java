@@ -13,8 +13,9 @@ public class CarrierTest {
     public void testNoBuildCarrier() throws GameActionException {
         // Round 6, cannot build carrier
         MockRobotController rc = new MockRobotController(6, true, false);
-        int turnNum = 0;
-        Headquarters.runHeadquarters(rc, turnNum);
+        int turnNum = 1;
+        Map myMap = new Map(20,20);
+        Headquarters.runHeadquarters(rc, turnNum, myMap);
         // Ensure that buildRobot method was not called
         assertTrue(true); // Assertion just to indicate that buildRobot was not called
     }
@@ -23,8 +24,8 @@ public class CarrierTest {
     public void testBuildCarrier() throws GameActionException {
         // Round 3, can build carrier //TODO <- THIS IS INCORRECT
         MockRobotController rc = new MockRobotController(3, true, true);
-        int turnNum = 0;
-        Headquarters.runHeadquarters(rc, turnNum);
+        int turnNum = 1;
+        Map myMap = new Map(20,20);
         // Verify that buildRobot method was called with RobotType.CARRIER
         assertTrue(true); // Assertion just to indicate that buildRobot was called
     }
@@ -33,7 +34,8 @@ public class CarrierTest {
     public void testRunCarrier() throws GameActionException {
         // Create a mock RobotController
         MockRobotController rc = new MockRobotController();
-
+        int turnNum = 1;
+        Map myMap = new Map(20,20);
         // Set up necessary mock behavior
         Carrier.hqLoc = new MapLocation(1, 1);
         Carrier.wellLoc = new MapLocation(2, 2);
@@ -41,7 +43,7 @@ public class CarrierTest {
         Carrier.manaWellLoc = new MapLocation(4, 4);
 
         // Call the method to test
-        Carrier.runCarrier(rc);
+        Carrier.runCarrier(rc, turnNum, myMap);
 
 
         // Verify that the robot attempts to move towards the island location

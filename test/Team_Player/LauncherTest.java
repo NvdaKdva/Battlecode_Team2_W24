@@ -13,9 +13,11 @@ public class LauncherTest {
     public void testRunLauncher_MoveRandomly() throws GameActionException {
         // Create a stub RobotController for testing
         MockRobotController rc = new MockRobotController(false);
+        int turnNum = 1;
+        Map myMap = new Map(20,20);
 
         // Call the method under test
-        Launcher.runLauncher(rc);
+        Launcher.runLauncher(rc, turnNum, myMap);
 
         // Assert the expected behavior
         assertTrue(rc.isMoveRandomCalled());

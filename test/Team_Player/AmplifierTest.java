@@ -13,6 +13,8 @@ public class AmplifierTest {
         // Create a mock RobotController
         MockRobotController rc = new MockRobotController();
         RobotPlayer robot = new RobotPlayer();
+        int turnCount = 2;
+        Map myMap = new Map(20,20);
 
         // Set up mock locations
         robot.islandLoc = new MapLocation(10, 10);
@@ -27,7 +29,7 @@ public class AmplifierTest {
         rc.setNearbyRobots(nearbyRobots);
 
         // Call the method to test
-        Amplifier.runAmplifier(rc);
+        Amplifier.runAmplifier(rc, turnCount, myMap);
 
         // Check if the robot moved towards the island
         assertNotEquals(robot.islandLoc, rc.moveTowardsLocation);

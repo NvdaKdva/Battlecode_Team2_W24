@@ -11,6 +11,7 @@ public class BoosterTest {
         public void testRunBooster() throws GameActionException {
             // Initialize a mock RobotController
             RobotController rc = new MockRobotController();
+            Map myMap = new Map(20,20);
 
             // Create a Booster instance
             Booster booster = new Booster();
@@ -21,7 +22,7 @@ public class BoosterTest {
             ((MockRobotController) rc).setLocation(currentLocation); // Set current location for the mock
 
             // Call the runBooster method
-            booster.runBooster(rc, 1);
+            booster.runBooster(rc, 1, myMap);
 
             // Check if the booster moved towards the spot
             assertNotEquals(mySpot, ((MockRobotController) rc).getLocation());
@@ -31,7 +32,7 @@ public class BoosterTest {
             ((MockRobotController) rc).setLocation(currentLocation); // Set current location for the mock
 
             // Call the runBooster method again
-            booster.runBooster(rc, 1);
+            booster.runBooster(rc, 1, myMap);
 
             // Check if the booster moved randomly
             assertEquals(mySpot, ((MockRobotController) rc).getLocation());
