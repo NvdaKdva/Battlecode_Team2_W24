@@ -39,7 +39,7 @@ public class Booster {
             }
 
             //find my spot if I don't have one
-            int spot = rc.readSharedArray(1);
+            int spot = rc.readSharedArray(61);
             switch(spot % 9) {
                 case 0:
                     mySpot = new MapLocation(booster_arr[0],booster_arr[1]);
