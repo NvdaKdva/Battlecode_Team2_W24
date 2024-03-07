@@ -4,6 +4,8 @@ import battlecode.common.*;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static Team_Player.Communication.headquarterLocs;
+import static Team_Player.Communication.intToLocation;
 import static org.junit.Assert.*;
 
 public class CommunicationTest {
@@ -33,16 +35,9 @@ public class CommunicationTest {
         Communication c = new Communication();
         MockRobotController rc = new MockRobotController();
         c.addHeadquarter(rc);
+        assertEquals(0, rc.readSharedArray(0));
     }
-    @Ignore
-    public void locationToInt_and_intToLocation_Test() throws GameActionException {
-        MockRobotController rc = new MockRobotController();
-        MapLocation location = new MapLocation(3, 5);
-        int encoded = Communication.locationToInt(rc, location);
-        MapLocation decoded = Communication.intToLocation(rc, encoded);
-        assertEquals(location, decoded);
 
-    }
     @Test
     public void readTeamHoldingIsland_Test() throws GameActionException {
         MockRobotController rc = new MockRobotController();
@@ -84,5 +79,40 @@ public class CommunicationTest {
         MapLocation actualEnemyLocation = Communication.getClosestEnemy(rc);
         assertNotEquals(expectedEnemyLocation, actualEnemyLocation);
     }
+
+
+    @Test
+    public void testUpdateHeadquarterInfo() throws GameActionException {
+
+        // Prepare test data
+        MapLocation islandLoc = new MapLocation(1, 1);
+        MapLocation hqLoc = new MapLocation(2, 2);
+        MapLocation wellLoc = new MapLocation(3, 3);
+        int[] sharedArray = {1, 2, 3, 0, 0}; // Assuming there are 3 headquarters
+        MockRobotController rc = new MockRobotController(islandLoc, hqLoc, wellLoc, null);
+        rc.setTurnCount(2);
+        rc.setSharedArray(sharedArray);
+
+        // Call the method to be tested
+        Communication.updateHeadquarterInfo(rc);
+
+        // Access the headquarterLocs array from Communication class
+        MapLocation[] headquarterLocs = Communication.getHeadquarterLocs(); // Assuming there's a static method to access headquarterLocs
+
+
+        // Assuming the third headquarter's location is not read as the array is terminated with 0
+        assertNull(headquarterLocs[2]);
+    }
+    @Test
+    public void testLocationToInt() {
+        MockRobotController rc = new MockRobotController();
+        MapLocation location = new MapLocation(2, 3);
+        int result = Communication.locationToInt(rc, location);
+        assertEquals(3, result);
+    }
+
+
+
+
 
 }

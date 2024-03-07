@@ -35,6 +35,11 @@ public  class MockRobotController implements RobotController {
     public int mapHeight;
     public int[] sharedArray;
     public MapLocation lastMove;
+    public MapLocation attackedLocation;
+    private int turnCount;
+
+
+
 
     public MockRobotController(MapLocation islandLoc, MapLocation hqLoc, MapLocation wellLoc, RobotInfo[] nearbyRobots) {
         this.islandLoc = islandLoc;
@@ -435,6 +440,8 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public boolean canAttack(MapLocation loc) {
+
+        this.attackedLocation = loc;
         return false;
     }
 
@@ -647,5 +654,15 @@ public  class MockRobotController implements RobotController {
     public Object getLastMove() {
         return lastMove;
     }
+
+    public void setTurnCount(int i) {
+        this.turnCount = i;
+    }
+
+
+    public void setSharedArray(int[] sharedArray) {
+        this.sharedArray = sharedArray;
+    }
+
 }
 

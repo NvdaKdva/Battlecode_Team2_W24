@@ -221,4 +221,11 @@ class Communication {
         m--;
         return new MapLocation(m % rc.getMapWidth(), m / rc.getMapWidth());
     }
+
+    public static MapLocation[] getHeadquarterLocs() {
+        return headquarterLocs;
+    }
+
+
+
 }
