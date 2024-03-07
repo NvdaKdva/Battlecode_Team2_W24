@@ -3,12 +3,11 @@ package Team_Player;
 import battlecode.common.*;
 
 public  class MockRobotController implements RobotController {
+    public RobotType type;
     public MapLocation moveTowardsLocation;
     public MapLocation wellLoc;
     public MapLocation hqLoc;
     public MapLocation islandLoc;
-
-
     public int adamantium;
     public int mana;
     public int elixar;
@@ -250,7 +249,7 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public int senseIsland(MapLocation loc) throws GameActionException {
-        return 0;
+        return loc.x + loc .y;
     }
 
     @Override
@@ -649,5 +648,4 @@ public  class MockRobotController implements RobotController {
         return lastMove;
     }
 }
-
 
