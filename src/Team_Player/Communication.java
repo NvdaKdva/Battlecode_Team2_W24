@@ -20,22 +20,22 @@ class Message {
 
 class Communication {
 
-    private static final int OUTDATED_TURNS_AMOUNT = 30;
-    private static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
+    public static final int OUTDATED_TURNS_AMOUNT = 30;
+    public static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
 
     // Maybe you want to change this based on exact amounts which you can get on turn 1
     static final int STARTING_ISLAND_IDX = GameConstants.MAX_STARTING_HEADQUARTERS;
-    private static final int STARTING_ENEMY_IDX = GameConstants.MAX_NUMBER_ISLANDS + GameConstants.MAX_STARTING_HEADQUARTERS;
+    public static final int STARTING_ENEMY_IDX = GameConstants.MAX_NUMBER_ISLANDS + GameConstants.MAX_STARTING_HEADQUARTERS;
 
-    private static final int TOTAL_BITS = 16;
-    private static final int MAPLOC_BITS = 12;
-    private static final int TEAM_BITS = 1;
-    private static final int HEALTH_BITS = 3;
-    private static final int HEALTH_SIZE = (int) Math.ceil(Anchor.ACCELERATING.totalHealth / 8.0);
+    public static final int TOTAL_BITS = 16;
+    public static final int MAPLOC_BITS = 12;
+    public static final int TEAM_BITS = 1;
+    public static final int HEALTH_BITS = 3;
+    public static final int HEALTH_SIZE = (int) Math.ceil(Anchor.ACCELERATING.totalHealth / 8.0);
 
 
-    private static List<Message> messagesQueue = new ArrayList<>();
-    private static MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
+    public static List<Message> messagesQueue = new ArrayList<>();
+    public static MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
 
 
 
@@ -207,18 +207,25 @@ class Communication {
         return answer;
     }
 
-    private static int locationToInt(RobotController rc, MapLocation m) {
+    public static int locationToInt(RobotController rc, MapLocation m) {
         if (m == null) {
             return 0;
         }
         return 1 + m.x + m.y * rc.getMapWidth();
     }
 
-    private static MapLocation intToLocation(RobotController rc, int m) {
+    public static MapLocation intToLocation(RobotController rc, int m) {
         if (m == 0) {
             return null;
         }
         m--;
         return new MapLocation(m % rc.getMapWidth(), m / rc.getMapWidth());
     }
+
+    public static MapLocation[] getHeadquarterLocs() {
+        return headquarterLocs;
+    }
+
+
+
 }
