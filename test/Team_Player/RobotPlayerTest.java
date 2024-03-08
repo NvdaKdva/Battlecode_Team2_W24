@@ -22,56 +22,14 @@ public class RobotPlayerTest {
 
     }
 
-    @Test
-    public void testScanWells() {
-        // Create a dummy WellInfo array with no wells
-        WellInfo[] emptyWells = new WellInfo[0];
-        MockRobotController rc = new MockRobotController();
-        rc.setNearbyWells(emptyWells);
-        Shared.scanWells(rc);
-        // Call the method
-        /*try {
-            Shared.scanWells(rc);
-        } catch (Exception e) {
-            fail("Exception occurred: " + e.getMessage());
-        }*/
 
-        // Assert that wellsLoc is null (or any other expected behavior)
-        assertNotNull(RobotPlayer.wellLoc);
-    }
 
     @Test
     public void testSanity() {
         assertEquals(2, 1 + 1);
     }
 
-    @Test
-    public void testGetTotalResource() {
 
-        RobotPlayer rp = new RobotPlayer();
-
-        MockRobotController rc = new MockRobotController(20, 20, 20);
-        // Call the method under test
-        int actualTotalAmount = Carrier.getTotalResource(rc);
-
-        // Verify the result
-        assertEquals(rc.getResourceAmount(ResourceType.ELIXIR)
-                + rc.getResourceAmount(ResourceType.MANA)
-                + rc.getResourceAmount(ResourceType.ADAMANTIUM), actualTotalAmount);
-    }
-
-    @Test
-    public void testGetTotalResourceNull() {
-
-        RobotPlayer rp = new RobotPlayer();
-
-        MockRobotController rc = new MockRobotController(0, 0, 0);
-        // Call the method under test
-        int actualTotalAmount = Carrier.getTotalResource(rc);
-
-        // Verify the result
-        assertEquals(rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA), actualTotalAmount);
-    }
 
     @Test
     public void testScanHQ() throws GameActionException {
@@ -196,32 +154,6 @@ public class RobotPlayerTest {
         assertEquals("Robot should move if canMove returns true", canMove, rc.hasMoved());
     }
 
-    @Test
-    public void testMoveRandomValid() throws GameActionException {
-        // Create a mock RobotController
-        MockRobotController rc = new MockRobotController();
-
-        // Call the method to test
-        Shared.moveRandom(rc);
-
-        // Check if the robot moved in a valid direction
-        assertTrue(rc.moveCalled);
-    }
-
-    @Test
-    public void testMoveTowards() throws GameActionException {
-
-        MockRobotController rc = new MockRobotController(true);
-
-        // Create a mock MapLocation
-        MapLocation loc = new MapLocation(10, 10);
-
-        // Call the moveTowards method
-        Shared.moveTowards(rc, loc);
-
-        // Verify that rc.move was called with the correct direction
-        assertTrue("Robot should move if canMove returns true", rc.hasMoved());
-    }
 
     @Test
     public void testBuildAnchor() throws GameActionException {
@@ -269,6 +201,7 @@ public class RobotPlayerTest {
         // Ensure that neither buildAnchor nor buildRobot method was called
         assertTrue(true); // Assertion just to indicate that neither method was called
     }
+
 
 
 

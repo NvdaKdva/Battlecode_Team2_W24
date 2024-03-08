@@ -112,6 +112,17 @@ public class CommunicationTest {
     }
 
 
+    @Test
+    public void testGetClosestHeadquarter() throws GameActionException {
+        MockRobotController rc = new MockRobotController();
+        MapLocation expectedLocation = new MapLocation(10, 15);
+        // Simulate writing the location to shared memory
+        rc.writeSharedArray(Communication.STARTING_ISLAND_IDX, Communication.locationToInt(rc, expectedLocation));
+        MapLocation actualLocation = Communication.getHeadquarterLocs()[0];
+        assertNotEquals(expectedLocation, actualLocation);
+    }
+
+
 
 
 

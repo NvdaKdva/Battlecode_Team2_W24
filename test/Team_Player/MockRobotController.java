@@ -472,11 +472,15 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public boolean canCollectResource(MapLocation loc, int amount) {
+
+
         return true;
     }
 
     @Override
     public void collectResource(MapLocation loc, int amount) throws GameActionException {
+
+
 
     }
 
@@ -663,6 +667,13 @@ public  class MockRobotController implements RobotController {
     public void setSharedArray(int[] sharedArray) {
         this.sharedArray = sharedArray;
     }
+
+    public void setWellLocation(MapLocation wellLocation) {
+        this.wellLoc = wellLocation;
+    }
+
+
+
 
 }
 

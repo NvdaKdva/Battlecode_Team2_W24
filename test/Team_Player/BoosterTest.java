@@ -37,6 +37,8 @@ public class BoosterTest {
             // Check if the booster moved randomly
             assertEquals(mySpot, ((MockRobotController) rc).getLocation());
         }
+
+
 }
 
 

@@ -3,6 +3,7 @@ package Team_Player;
 import battlecode.common.Anchor;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
+import battlecode.common.ResourceType;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -14,7 +15,7 @@ public class CarrierTest {
         // Round 6, cannot build carrier
         MockRobotController rc = new MockRobotController(6, true, false);
         int turnNum = 1;
-        Map myMap = new Map(20,20);
+        Map myMap = new Map(20, 20);
         Headquarters.runHeadquarters(rc, turnNum, myMap);
         // Ensure that buildRobot method was not called
         assertTrue(true); // Assertion just to indicate that buildRobot was not called
@@ -26,7 +27,7 @@ public class CarrierTest {
         // Round 3, can build carrier //TODO <- THIS IS INCORRECT
         MockRobotController rc = new MockRobotController(3, true, true);
         int turnNum = 1;
-        Map myMap = new Map(20,20);
+        Map myMap = new Map(20, 20);
         // Verify that buildRobot method was called with RobotType.CARRIER
         assertTrue(true); // Assertion just to indicate that buildRobot was called
     }
@@ -36,7 +37,7 @@ public class CarrierTest {
         // Create a mock RobotController
         MockRobotController rc = new MockRobotController();
         int turnNum = 1;
-        Map myMap = new Map(20,20);
+        Map myMap = new Map(20, 20);
         // Set up necessary mock behavior
         Carrier.hqLoc = new MapLocation(1, 1);
         Carrier.wellLoc = new MapLocation(2, 2);
@@ -53,6 +54,35 @@ public class CarrierTest {
 
 
     }
+
+    @Test
+    public void testGetTotalResourceNull() {
+
+        RobotPlayer rp = new RobotPlayer();
+
+        MockRobotController rc = new MockRobotController(0, 0, 0);
+        // Call the method under test
+        int actualTotalAmount = Carrier.getTotalResource(rc);
+
+        // Verify the result
+        assertEquals(rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA), actualTotalAmount);
+    }
+
+    @Test
+    public void testGetTotalResource() {
+
+        RobotPlayer rp = new RobotPlayer();
+
+        MockRobotController rc = new MockRobotController(20, 20, 20);
+        // Call the method under test
+        int actualTotalAmount = Carrier.getTotalResource(rc);
+
+        // Verify the result
+        assertEquals(rc.getResourceAmount(ResourceType.ELIXIR)
+                + rc.getResourceAmount(ResourceType.MANA)
+                + rc.getResourceAmount(ResourceType.ADAMANTIUM), actualTotalAmount);
+    }
+
 
 
 }
