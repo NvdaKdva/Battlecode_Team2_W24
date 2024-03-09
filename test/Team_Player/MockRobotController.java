@@ -3,43 +3,46 @@ package Team_Player;
 import battlecode.common.*;
 
 public  class MockRobotController implements RobotController {
-    public RobotType type;
+
+    public RobotType robotType;
+    public MapLocation robotLocation;
+
     public MapLocation moveTowardsLocation;
     public MapLocation wellLoc;
     public MapLocation hqLoc;
     public MapLocation islandLoc;
+
     public int adamantium;
     public int mana;
     public int elixar;
     public int[] nearByIsland;
     public Team team;
     public MapLocation randomLocation = new MapLocation(0, 0);
-
     public boolean moveCalled = false;
     public boolean canMoveResult = true;
     public boolean canAttack = true;
     public String indicatorString = null;
     public RobotInfo[] sensedRobots;
     public boolean hasMoved;
-
     public int roundNum;
     public boolean canBuildAnchor;
     public boolean canBuildRobot;
     public MapLocation[] resourceLocations;
-
     public int[][] nearbyIslands;
     public Team[] islandOccupyingTeam;
     public MapLocation[][] islandLocations;
-    public int moveTowardsCalls =0;
+    public int moveTowardsCalls = 0;
     public int mapWidth;
     public int mapHeight;
     public int[] sharedArray;
     public MapLocation lastMove;
+    public int senseIsland_Ret_Value = 0;
+    public WellInfo senseWell_Ret_Value = null;
+    public boolean canSenseRobot_Ret_Value = false;
+    public RobotInfo sensedRobotInfo = null;
+    public MapInfo[] sensedMapInfo = null;
     public MapLocation attackedLocation;
     private int turnCount;
-
-
-
 
     public MockRobotController(MapLocation islandLoc, MapLocation hqLoc, MapLocation wellLoc, RobotInfo[] nearbyRobots) {
         this.islandLoc = islandLoc;
@@ -92,14 +95,16 @@ public  class MockRobotController implements RobotController {
         this.hasMoved = false;
     }
 
-    public MockRobotController() {
-
+    public MockRobotController(RobotType robotType, int x, int y) {
+        this.robotType = robotType;
+        this.robotLocation = new MapLocation(x,y);
     }
+
+    public MockRobotController() {}
 
     public int getAdamantium() {
         return adamantium;
     }
-
 
     public int getMana() {
         return mana;
@@ -145,13 +150,15 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public Team getTeam() {
-        return null;
+        return team;
     }
+    public void setTeam(Team value) { team = value;}
 
     @Override
     public RobotType getType() {
-        return null;
+        return robotType;
     }
+//    public RobotType getType(RobotType robotType) { return robotType; }
 
     @Override
     public MapLocation getLocation() {
@@ -208,12 +215,19 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public boolean canSenseRobotAtLocation(MapLocation loc) {
-        return false;
+        return canSenseRobot_Ret_Value;
     }
+
+    public void setCanSenseRobot_Ret_Value(boolean value) { canSenseRobot_Ret_Value = value; }
+
 
     @Override
     public RobotInfo senseRobotAtLocation(MapLocation loc) throws GameActionException {
-        return null;
+        return sensedRobotInfo;
+    }
+
+    public void setSensedRobot(RobotInfo values) {
+        sensedRobotInfo = values;
     }
 
     @Override
@@ -254,7 +268,11 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public int senseIsland(MapLocation loc) throws GameActionException {
-        return loc.x + loc .y;
+        return senseIsland_Ret_Value;
+    }
+
+    public void setSenseIsland_Ret_Value(int value) {
+        senseIsland_Ret_Value = value;
     }
 
     @Override
@@ -323,7 +341,11 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public WellInfo senseWell(MapLocation loc) throws GameActionException {
-        return null;
+        return senseWell_Ret_Value;
+    }
+
+    public void setSenseWell_Ret_Value(WellInfo wInfo) {
+        senseWell_Ret_Value = wInfo;
     }
 
     @Override
@@ -358,8 +380,9 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public MapInfo senseMapInfo(MapLocation loc) throws GameActionException {
-        return null;
+        return sensedMapInfo[loc.x*10 + loc.y];
     }
+    public void setSensedMapInfo(MapInfo[] value) { sensedMapInfo = value; }
 
     @Override
     public MapInfo[] senseNearbyMapInfos() {
