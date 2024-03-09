@@ -4,12 +4,11 @@ import battlecode.common.*;
 
 public class Map {
     static final String[] sqType = {
-            "Open", "Wall", "Cloud", "HQ", "Island", "Current",
-    };
+            "Open", "Wall", "Cloud", "HQ", "Island", "Current", };
 
     public MapSquare[][] arenaMap;
 
-    private class MapSquare {
+    public class MapSquare {
         /** Attributes of a square */
         private MapLocation cords;
         private String type; //e.g. open, island, wall, HQ, well
@@ -23,7 +22,7 @@ public class Map {
             cords = new MapLocation(width,height);
         }
 
-        public void setSqType(RobotController rc, MapInfo info) throws GameActionException {
+        public String setSqType(RobotController rc, MapInfo info) throws GameActionException {
             String type = null;
             MapLocation here = info.getMapLocation();
             if(!info.isPassable()) type = "Wall";
@@ -37,18 +36,24 @@ public class Map {
             else if(rc.canSenseRobotAtLocation(here)) {
                 if(rc.senseRobotAtLocation(here).type == RobotType.HEADQUARTERS) {
                     type = "HQ";
-                    if (rc.getTeam() == rc.senseRobotAtLocation(here).team) FOFid = "Friend";
+                    if (rc.getTeam() == rc.senseRobotAtLocation(here).team) {
+                        FOFid = "Friend";
+                    } else {
+                        FOFid = "Foe";
+                    }
                 }
-                else FOFid = "Foe";
             }
             else type = "Open";
 
             this.type = type;
             setMapped(true);
+            return type;
         }
 
         public boolean isMapped() { return mapped; }
         public void setMapped(boolean mapped) { this.mapped = mapped; }
+        public Direction getCurrDir() { return currDir; }
+        public String getFOFid() { return FOFid; }
     }
 
     public Map(int width, int height) {
@@ -60,28 +65,19 @@ public class Map {
         }
     }
 
-    public void updateMap(RobotController rc, int turnCount) throws GameActionException {
-        //determine vision squared distance for robot type
-        int vision = 20;
-        if(rc.getType() != null) {
-            switch (rc.getType()) {
-                case AMPLIFIER:
-                case HEADQUARTERS:
-                    vision = 34;
-                    break;
-/*          case BOOSTER:
-            case CARRIER:
-            case LAUNCHER:
-            case DESTABILIZER: vision = 20; break;*/
-                default:
-                    break;
-            }
+    static int getVision(RobotController rc, int turnCount, int vision) {
+        switch (rc.getType()) {
+            case AMPLIFIER:
+            case HEADQUARTERS:
+                vision = 34;
+                break;
         }
         if(turnCount == 1) vision = vision/2;
 
-        //Gets list of all visible areas on map
-        MapLocation[] view = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(), vision);
+        return vision;
+    }
 
+    static void updateSquares(MapLocation[] view, RobotController rc, MapSquare[][] arenaMap) throws GameActionException {
         //Maps all unmapped visible squares
         for(MapLocation loc : view) {
             //check if already mapped, if mapped skip
@@ -93,6 +89,15 @@ public class Map {
         }
     }
 
-}
+    public void updateMap(RobotController rc, int turnCount) throws GameActionException {
+        //determine vision squared distance for robot type
+        int vision = 20;
+        if(rc.getType() != null) { vision = getVision(rc, turnCount, vision);}
+        //Gets list of all visible areas on map
+        MapLocation[] view = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(), vision);
+        //Maps all unmapped visible squares
+        updateSquares(view, rc, arenaMap);
+    }
 
+}
 

@@ -49,8 +49,6 @@ public class CarrierTest {
         // Verify that the robot attempts to move towards the island location
         assertFalse(rc.indicatorString.startsWith("Building anchor! " + Anchor.STANDARD));
         assertNotEquals(1, rc.moveTowardsCalls); // Ensure moveTowards was called once
-
-
     }
 
 
