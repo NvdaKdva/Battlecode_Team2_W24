@@ -19,6 +19,7 @@ public class Carrier {
         if (wellLoc == null) wellLoc = Shared.scanWells(rc);
         if (islandLoc == null) islandLoc = Shared.scanIslands(rc);
         if (manaWellLoc == null) manaWellLoc = Shared.scanManaWell(rc);
+        if (hqLoc == null) rc.disintegrate(); //temp patch for some maps
 
 //Collect from well if close and inventory not full
         if (wellLoc != null && rc.canCollectResource(wellLoc, -1)) {

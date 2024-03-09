@@ -37,11 +37,11 @@ public class Headquarters {
             rc.setIndicatorString("Building Standard anchor!");
         }
 
-        if(rc.getRoundNum() % 10 == 0 && rc.readSharedArray(1) < 18) {
+        if(rc.getRoundNum() % 10 == 0 && rc.readSharedArray(61) < 18) {
             rc.setIndicatorString("Trying to build a booster");
             if (rc.canBuildRobot(RobotType.BOOSTER, newLoc)) {
                 rc.buildRobot(RobotType.BOOSTER, newLoc);
-                rc.writeSharedArray(1,rc.readSharedArray(1)+1);
+                rc.writeSharedArray(61,rc.readSharedArray(61)+1);
             }
         }
 
