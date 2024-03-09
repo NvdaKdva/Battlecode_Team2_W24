@@ -3,8 +3,10 @@ package Team_Player;
 import battlecode.common.*;
 
 public  class MockRobotController implements RobotController {
+
     public RobotType robotType;
     public MapLocation robotLocation;
+
     public MapLocation moveTowardsLocation;
     public MapLocation wellLoc;
     public MapLocation hqLoc;
@@ -39,6 +41,8 @@ public  class MockRobotController implements RobotController {
     public boolean canSenseRobot_Ret_Value = false;
     public RobotInfo sensedRobotInfo = null;
     public MapInfo[] sensedMapInfo = null;
+    public MapLocation attackedLocation;
+    private int turnCount;
 
     public MockRobotController(MapLocation islandLoc, MapLocation hqLoc, MapLocation wellLoc, RobotInfo[] nearbyRobots) {
         this.islandLoc = islandLoc;
@@ -459,6 +463,8 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public boolean canAttack(MapLocation loc) {
+
+        this.attackedLocation = loc;
         return false;
     }
 
@@ -489,11 +495,15 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public boolean canCollectResource(MapLocation loc, int amount) {
+
+
         return true;
     }
 
     @Override
     public void collectResource(MapLocation loc, int amount) throws GameActionException {
+
+
 
     }
 
@@ -671,6 +681,22 @@ public  class MockRobotController implements RobotController {
     public Object getLastMove() {
         return lastMove;
     }
-}
 
+    public void setTurnCount(int i) {
+        this.turnCount = i;
+    }
+
+
+    public void setSharedArray(int[] sharedArray) {
+        this.sharedArray = sharedArray;
+    }
+
+    public void setWellLocation(MapLocation wellLocation) {
+        this.wellLoc = wellLocation;
+    }
+
+
+
+
+}
 
