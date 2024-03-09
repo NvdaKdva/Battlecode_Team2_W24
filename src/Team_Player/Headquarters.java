@@ -58,7 +58,8 @@ public class Headquarters {
         if (rc.getRoundNum() % 20 == 0) {
             //if (rc.getRoundNum() == 0 || rc.getRoundNum() % 5 != 0 && rc.getRoundNum() % 3 == 0) {
             rc.setIndicatorString("Trying to build a carrier");
-            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+            if (rc.senseMapInfo(newLoc).getCurrentDirection() == Direction.CENTER
+                && rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                 rc.buildRobot(RobotType.CARRIER, newLoc);
             }
         }

@@ -13,7 +13,7 @@ public class Map {
         private MapLocation cords;
         private String type; //e.g. open, island, wall, HQ, well
         private boolean mapped = false; //has this robot mapped this
-        private Direction currDir = null; //direction of current if any
+        private Direction currDir = Direction.CENTER; //direction of current if any
         private ResourceType wellType = null; //Resource type if a well
         private String FOFid = "";
 

@@ -43,8 +43,8 @@ import java.util.Random;
             else moveRandom(rc);
         }
 
-        static MapLocation scanHQ(RobotController rc) {
-            RobotInfo[] robots = rc.senseNearbyRobots();
+        static MapLocation scanHQ(RobotController rc) throws GameActionException {
+            RobotInfo[] robots = rc.senseNearbyRobots(3);
             MapLocation hqloc = null;
             for(RobotInfo robot : robots){
                 if(robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS){

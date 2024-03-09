@@ -154,30 +154,39 @@ public class RobotPlayerTest {
         assertEquals("Robot should move if canMove returns true", canMove, rc.hasMoved());
     }
 
-
+/*
+// TODO Neither of these actually test anything. assertTrue(true) always returns true.
+// A better method would be to assert a test against the setIndicatorString if your testing through runHeadquarters
+// Even better than that make the anchor build it's own subroutine so you can test just that
     @Test
     public void testBuildAnchor() throws GameActionException {
         // Round 160, can build anchor
         MockRobotController rc = new MockRobotController(160, true, true);
         int turnNum = 2;
         Map myMap = new Map(20, 20);
+        MapLocation blah = new MapLocation(1,1);
+        rc.setLocation(blah);
         Headquarters.runHeadquarters(rc, turnNum, myMap);
         // Verify that buildAnchor method was called
         assertTrue(true); // Assertion just to indicate that buildAnchor was called
     }
 
-
+    // TODO Neither of these actually test anything. assertTrue(true) always returns true.
+// A better method would be to assert a test against the setIndicatorString if your testing through runHeadquarters
+// Even better than that make the anchor build it's own subroutine so you can test just that
     @Test
     public void testNoBuildAnchor() throws GameActionException {
         // Round 140, cannot build anchor
         MockRobotController rc = new MockRobotController(140, false, true);
         int turnNum = 1;
         Map myMap = new Map(20, 20);
+        MapLocation blah = new MapLocation(1,1);
+        rc.setLocation(blah);
         Headquarters.runHeadquarters(rc, turnNum, myMap);
         // Ensure that buildAnchor method was not called
         assertTrue(true); // Assertion just to indicate that buildAnchor was not called
     }
-
+*/
 
 
     @Test
