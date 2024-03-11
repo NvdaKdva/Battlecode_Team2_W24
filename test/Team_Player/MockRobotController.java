@@ -45,6 +45,7 @@ public  class MockRobotController implements RobotController {
     private int turnCount;
     public boolean buildAnchorCalled;
     public MapLocation lastMoveTarget;
+    public double priority = 1.0;
 
     public MockRobotController(MapLocation islandLoc, MapLocation hqLoc, MapLocation wellLoc, RobotInfo[] nearbyRobots) {
         this.islandLoc = islandLoc;
@@ -118,6 +119,10 @@ public  class MockRobotController implements RobotController {
 
     public void setNearbyRobots(RobotInfo[] nearbyRobots) {
         this.nearbyRobots = nearbyRobots;
+    }
+
+    public void setPriority(double value) {
+        priority = value;
     }
 
     @Override
