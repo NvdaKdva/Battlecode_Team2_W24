@@ -122,8 +122,142 @@ public class CommunicationTest {
         assertNotEquals(expectedLocation, actualLocation);
     }
 
+    @Test
+    public void testAddHeadquarter3() throws GameActionException {
+        MockRobotController mockRobotController = new MockRobotController();
+        Communication.addHeadquarter(mockRobotController);
+        assertEquals(0, mockRobotController.senseIsland_Ret_Value);
+        assertEquals(0, mockRobotController.moveTowardsCalls);
+        assertEquals(0, mockRobotController.elixar);
+        assertFalse(mockRobotController.canSenseRobot_Ret_Value);
+        assertTrue(mockRobotController.canMoveResult);
+        assertFalse(mockRobotController.canBuildRobot);
+        assertFalse(mockRobotController.canBuildAnchor);
+        assertFalse(mockRobotController.isMoveRandomCalled());
+        assertFalse(mockRobotController.hasMoved());
+        assertEquals(0, mockRobotController.getRoundNum());
+        assertEquals(0, mockRobotController.getMapWidth());
+        assertEquals(0, mockRobotController.getMapHeight());
+        assertEquals(0, mockRobotController.getMana());
+        assertEquals(0, mockRobotController.getAdamantium());
+        assertTrue(mockRobotController.getAttackCalled());
+        assertEquals(0, mockRobotController.getLocation().x);
+    }
+
+    @Test
+    public void testUpdateHeadquarterInfo2() throws GameActionException {
+        MockRobotController mockRobotController = new MockRobotController();
+        Communication.updateHeadquarterInfo(mockRobotController);
+        assertEquals(0, mockRobotController.senseIsland_Ret_Value);
+        assertEquals(0, mockRobotController.moveTowardsCalls);
+        assertEquals(0, mockRobotController.elixar);
+        assertFalse(mockRobotController.canSenseRobot_Ret_Value);
+        assertTrue(mockRobotController.canMoveResult);
+        assertFalse(mockRobotController.canBuildRobot);
+        assertFalse(mockRobotController.canBuildAnchor);
+        assertFalse(mockRobotController.isMoveRandomCalled());
+        assertFalse(mockRobotController.hasMoved());
+        assertEquals(0, mockRobotController.getRoundNum());
+        assertEquals(0, mockRobotController.getMapWidth());
+        assertEquals(0, mockRobotController.getMapHeight());
+        assertEquals(0, mockRobotController.getMana());
+        assertEquals(0, mockRobotController.getAdamantium());
+        assertTrue(mockRobotController.getAttackCalled());
+        assertEquals(0, mockRobotController.getLocation().x);
+    }
+
+
+    @Test
+    public void testTryWriteMessages() throws GameActionException {
+
+        Communication.tryWriteMessages(new MockRobotController());
+    }
+
+
+    @Test
+    public void testBitPackIslandInfo() {
+        assertEquals(Short.SIZE, Communication.bitPackIslandInfo(new MockRobotController(), 1, null));
+    }
+
+    @Test
+    public void testBitPackIslandInfo2() {
+        MockRobotController rc = new MockRobotController();
+        assertEquals(Double.SIZE, Communication.bitPackIslandInfo(rc, 123, new MapLocation(2, 3)));
+    }
+
+//    @Test
+//    public void testReadTeamHoldingIsland() {
+//        assertEquals(Team.NEUTRAL, Communication.readTeamHoldingIsland(new MockRobotController(), 123));
+//    }
 
 
 
+    @Test
+    public void testReadIslandLocation() {
+        assertNull(Communication.readIslandLocation(new MockRobotController(), 123));
+    }
+
+
+
+
+    @Test
+    public void testReadMaxIslandHealth() {
+        assertEquals(0, Communication.readMaxIslandHealth(new MockRobotController(), 123));
+    }
+
+
+    @Test
+    public void testReportEnemy() {
+
+        Communication.reportEnemy(new MockRobotController(), null);
+    }
+
+
+    @Test
+    public void testReportEnemy2() {
+
+        MockRobotController rc = new MockRobotController();
+        Communication.reportEnemy(rc, new MapLocation(2, 3));
+    }
+
+    @Test
+    public void testGetClosestEnemy() {
+        assertNull(Communication.getClosestEnemy(new MockRobotController()));
+    }
+
+    @Test
+    public void testLocationToInt11() {
+        assertEquals(0, Communication.locationToInt(new MockRobotController(), null));
+    }
+
+
+    @Test
+    public void testLocationToInt2() {
+        MockRobotController rc = new MockRobotController();
+        assertEquals(3, Communication.locationToInt(rc, new MapLocation(2, 3)));
+    }
+
+
+    @Test
+    public void testIntToLocation() {
+        assertThrows(ArithmeticException.class, () -> Communication.intToLocation(new MockRobotController(), 1));
+        assertNull(Communication.intToLocation(new MockRobotController(), 0));
+    }
+
+    @Test
+    public void testIntToLocation3() {
+        MockRobotController mockRobotController = new MockRobotController();
+        mockRobotController.setMapWidth(1);
+        MapLocation actualIntToLocationResult = Communication.intToLocation(mockRobotController, 1);
+        assertEquals(0, actualIntToLocationResult.x);
+        assertEquals(0, actualIntToLocationResult.y);
+    }
+
+
+    @Test
+    public void testGetHeadquarterLocs() {
+
+        MapLocation[] actualHeadquarterLocs = Communication.getHeadquarterLocs();
+    }
 
 }
