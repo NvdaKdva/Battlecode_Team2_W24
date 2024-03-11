@@ -3,51 +3,45 @@ package Team_Player;
 import battlecode.common.*;
 
 public class Amplifier {
-    static MapLocation hqLoc;
-    static MapLocation wellLoc;
-    static MapLocation islandLoc;
+    static int[] amp_arr;
+    static MapLocation myPlace;
 
-    /** Run a single turn for an Amplifier.
-     * This code is wrapped inside the infinite loop in run(), so it is called once per turn. */
     static void runAmplifier(RobotController rc, int turnCount, Map myMap) throws GameActionException {
         myMap.updateMap(rc, turnCount);
 
-        // Scan for critical locations
-        Shared.scanIslands(rc);
-        Shared.scanHQ(rc);
-        Shared.scanWells(rc);
-        //Why are we sending them to clog up islands, wells and the HQ.
-        //Why do we never use them to communicate
-        //Why are we building more than ~20?
+        if(turnCount == 1) {
+            amp_arr = setAmpArr(rc.getMapWidth(),rc.getMapHeight());
 
-        // Move towards island
-        if (islandLoc != null) {
-            if(rc.getLocation().directionTo(islandLoc) == Direction.CENTER) {
-                rc.setIndicatorString("Trying to move to where I am, I'm a bad robot. "); Shared.moveRandom(rc);}
-            else
-                Shared.moveTowards(rc, islandLoc);
+            myPlace = Amplifier.getMyPlace(rc.readSharedArray(62), amp_arr.length);
         }
-        // Scan for nearby amplifiers
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        for (RobotInfo robot : nearbyRobots) {
-            if (robot.getType() == RobotType.AMPLIFIER) {
-                // Move towards the well if found nearby
-                if (wellLoc != null) {
-                    if(rc.getLocation().directionTo(wellLoc) == Direction.CENTER) {
-                        rc.setIndicatorString("Trying to move to where I am, I'm a bad robot. ");
-                        Shared.moveRandom(rc);
-                    } else { Shared.moveTowards(rc, wellLoc);}
-                }
-                // Move towards HQ if another amplifier is found near the well
-                if (hqLoc != null) {
-                    if(rc.getLocation().directionTo(hqLoc) == Direction.CENTER) {
-                        rc.setIndicatorString("Trying to move to where I am, I'm a bad robot. ");
-                        Shared.moveRandom(rc);
-                    } else { Shared.moveTowards(rc, hqLoc);}
-                }
-            }
-        }
+
+        //move to my spot then move randomly near it
+        if(!rc.getLocation().isAdjacentTo(myPlace)) {
+            Shared.moveTowards(rc,myPlace); }
+        else { Shared.moveRandom(rc); }
+
     }
 
-    ///** Support Functions */
+    static int[] setAmpArr(int width, int height) {
+        int wNum, hNum, numPlaces, offset = 0;
+        if(width%5 == 0) {wNum = (width / 5) -1;} else {wNum = (width/5);}
+        if(height%5 == 0) {hNum = (height / 5) -1;} else {hNum = (height/5);}
+        numPlaces = wNum*hNum;
+        int[] place_arr = new int[numPlaces*2];
+        for(int i = 1; i <= hNum; i++) {
+            for(int j = 1; j <= wNum; j++) {
+                place_arr[offset] = j * 5;
+                place_arr[offset+1] = i * 5;
+                offset += 2;
+            }
+        }
+        return place_arr;
+    }
+
+    public static MapLocation getMyPlace(int num_amps, int ampArrLen) {
+        int offset = num_amps % (ampArrLen/2);
+        MapLocation place = new MapLocation(amp_arr[offset*2],amp_arr[offset*2+1]);
+        return place;
+    }
+
 }

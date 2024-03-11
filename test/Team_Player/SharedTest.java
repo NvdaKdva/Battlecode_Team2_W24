@@ -4,6 +4,7 @@ import battlecode.world.Inventory;
 import org.junit.Ignore;
 import org.junit.Test;
 import battlecode.common.*;
+import org.scalactic.Or;
 
 import static org.junit.Assert.*;
 
@@ -65,14 +66,36 @@ public class SharedTest {
         MockRobotController rc = new MockRobotController();
         // Set the mana well location
         rc.setWellLocation(new MapLocation(10, 10));
+
+        MapLocation testwellLoc = new MapLocation(10,10);
+        Inventory inv = new Inventory();
+        WellInfo twInfo = new WellInfo(testwellLoc,ResourceType.MANA,inv,false);
+        MockRobotController mrc = new MockRobotController();
+        rc.setSenseWell_Ret_Value(twInfo);
+
         // Call the method to test
         MapLocation wellLocation = Shared.scanManaWell(rc);
 
         // Verify that the method returns the correct location
-        assertNotEquals(new MapLocation(10, 10), wellLocation);
+        assertEquals(new MapLocation(10, 10), wellLocation);
 
     }
 
+    @Test
+    public void scanWellTest() throws GameActionException {
+        MapLocation testislandLoc = new MapLocation(0,1);
+        MapLocation testhqLoc = new MapLocation(1,1);
+        MapLocation testwellLoc = new MapLocation(1,0);
+        Inventory inv = new Inventory();
+
+        WellInfo twInfo = new WellInfo(testwellLoc,ResourceType.ADAMANTIUM,inv,false);
+        MockRobotController mrc = new MockRobotController();
+        mrc.setSenseWell_Ret_Value(twInfo);
+
+        MapLocation expected = new MapLocation(1,0);
+        MapLocation result = Shared.scanWells(mrc);
+        assertEquals(expected,result);
+    }
 
 
 }

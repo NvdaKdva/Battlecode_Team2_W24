@@ -1,6 +1,5 @@
 package Team_Player;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import battlecode.common.*;
@@ -82,7 +81,7 @@ public class BoosterTest {
         mrc.setLocation(non_adj_loc);
 
         booster_3.runBooster(mrc, 2, myMap);
-        assert mrc.isMoveRandomCalled() == true;
+        assert mrc.isMoveRandomCalled();
     }
 }
 

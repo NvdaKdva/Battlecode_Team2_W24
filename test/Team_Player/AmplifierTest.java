@@ -1,217 +1,50 @@
 package Team_Player;
 
 import battlecode.common.*;
-import battlecode.world.Inventory;
 import org.junit.Test;
-
 import static org.junit.Assert.*;
 
 public class AmplifierTest {
 
     @Test
-    public void testRunAmplifier() throws GameActionException {
-        // Create a mock RobotController
-        MockRobotController rc = new MockRobotController();
-        RobotPlayer robot = new RobotPlayer();
-        int turnCount = 2;
+    public void testSetAmpArr() {
+        int[] expected = {5,5,10,5,15,5,5,10,10,10,15,10,5,15,10,15,15,15};
+        int[] result = Amplifier.setAmpArr(20,20);
+        assertArrayEquals(result,expected);
+    }
+
+    @Test
+    public void testGetMyPlace() {
+        Amplifier test_amp = new Amplifier();
+        test_amp.amp_arr = Amplifier.setAmpArr(20,20);
+        MapLocation expected_1 = new MapLocation(5,5);
+        MapLocation expected_2 = new MapLocation(15,15);
+
+        MapLocation result_1 = Amplifier.getMyPlace(0,test_amp.amp_arr .length);
+        assertEquals(expected_1, result_1);
+
+        MapLocation result_2 = Amplifier.getMyPlace(8,test_amp.amp_arr .length);
+        assertEquals(expected_2, result_2);
+    }
+
+    @Test
+    public void runAmplifierTest() throws GameActionException {
+        MockRobotController mrc = new MockRobotController(RobotType.AMPLIFIER, 4, 10);
+        Amplifier test_amp_2 = new Amplifier();
+        test_amp_2.amp_arr = Amplifier.setAmpArr(20,20);
         Map myMap = new Map(20,20);
 
-        // Set up mock locations
-        robot.islandLoc = new MapLocation(10, 10);
-        robot.hqLoc = new MapLocation(5, 5);
-        robot.wellLoc = new MapLocation(7, 7);
+        test_amp_2.myPlace = test_amp_2.getMyPlace(0, test_amp_2.amp_arr.length);
 
-        // Set up mock nearby robots
-        RobotInfo[] nearbyRobots = {
+        test_amp_2.runAmplifier(mrc,2,myMap);
+        assert mrc.moveCalled;
 
-                new RobotInfo(1, Team.A, RobotType.AMPLIFIER, new Inventory(), 50,  new MapLocation(6, 6))
-        };
-        rc.setNearbyRobots(nearbyRobots);
+        mrc.moveCalled = false;
+        MapLocation non_adj_loc = new MapLocation(5,5);
+        mrc.setLocation(non_adj_loc);
 
-        // Call the method to test
-        Amplifier.runAmplifier(rc, turnCount, myMap);
-
-        // Check if the robot moved towards the island
-        assertNotEquals(robot.islandLoc, rc.moveTowardsLocation);
-    }
-    @Test
-    public void testRunAmplifierNoIsland() throws GameActionException {
-        // Create a mock RobotController
-        MockRobotController rc = new MockRobotController();
-        RobotPlayer robot = new RobotPlayer();
-        int turnCount = 2;
-        Map myMap = new Map(20, 20);
-
-        // Set up mock locations with no island location
-        robot.islandLoc = null;
-        robot.hqLoc = new MapLocation(5, 5);
-        robot.wellLoc = new MapLocation(7, 7);
-
-        // Set up mock nearby robots
-        RobotInfo[] nearbyRobots = {
-                new RobotInfo(1, Team.A, RobotType.AMPLIFIER, new Inventory(), 50, new MapLocation(6, 6))
-        };
-        rc.setNearbyRobots(nearbyRobots);
-
-        // Call the method to test
-        Amplifier.runAmplifier(rc, turnCount, myMap);
-
-        // Check if the robot did not move towards the island
-        assertNull(rc.moveTowardsLocation);
-    }
-    @Test
-    public void testRunAmplifierNearbyAmplifier() throws GameActionException {
-        // Create a mock RobotController
-        MockRobotController rc = new MockRobotController();
-        RobotPlayer robot = new RobotPlayer();
-        int turnCount = 2;
-        Map myMap = new Map(20, 20);
-
-        // Set up mock locations with no island location
-        robot.islandLoc = new MapLocation(10, 10);
-        robot.hqLoc = new MapLocation(5, 5);
-        robot.wellLoc = new MapLocation(7, 7);
-
-        // Set up mock nearby robots with an amplifier nearby
-        RobotInfo[] nearbyRobots = {
-                new RobotInfo(1, Team.A, RobotType.AMPLIFIER, new Inventory(), 50, new MapLocation(9, 9))
-        };
-        rc.setNearbyRobots(nearbyRobots);
-
-        // Call the method to test
-        Amplifier.runAmplifier(rc, turnCount, myMap);
-
-        // Check if the robot did not move towards the well or HQ
-        assertNull(rc.moveTowardsLocation);
+        test_amp_2.runAmplifier(mrc,2,myMap);
+        assert  mrc.isMoveRandomCalled();
     }
 
-
-
-        @Test
-    public void testRunAmplifierNearbyWell() throws GameActionException {
-            // Create a mock RobotController
-            MockRobotController rc = new MockRobotController();
-            RobotPlayer robot = new RobotPlayer();
-            int turnCount = 2;
-            Map myMap = new Map(20, 20);
-
-            // Set up mock locations with no island location
-            robot.islandLoc = new MapLocation(10, 10);
-            robot.hqLoc = new MapLocation(5, 5);
-            robot.wellLoc = new MapLocation(7, 7);
-
-            // Set up mock nearby robots with a well nearby
-            RobotInfo[] nearbyRobots = {
-                    new RobotInfo(1, Team.A, RobotType.AMPLIFIER, new Inventory(), 50, new MapLocation(6, 6))
-            };
-            rc.setNearbyRobots(nearbyRobots);
-
-            // Call the method to test
-            Amplifier.runAmplifier(rc, turnCount, myMap);
-
-            // Check if the robot moved towards the well
-            assertNotEquals(robot.wellLoc, rc.moveTowardsLocation);
-        }
-
-
-        @Test
-        public void testRunAmplifierNearbyHQ() throws GameActionException {
-            // Create a mock RobotController
-            MockRobotController rc = new MockRobotController();
-            RobotPlayer robot = new RobotPlayer();
-            int turnCount = 2;
-            Map myMap = new Map(20, 20);
-
-            // Set up mock locations with no island location
-            robot.islandLoc = new MapLocation(10, 10);
-            robot.hqLoc = new MapLocation(5, 5);
-            robot.wellLoc = new MapLocation(7, 7);
-
-            // Set up mock nearby robots with an amplifier nearby
-            RobotInfo[] nearbyRobots = {
-                    new RobotInfo(1, Team.A, RobotType.AMPLIFIER, new Inventory(), 50, new MapLocation(6, 6))
-            };
-            rc.setNearbyRobots(nearbyRobots);
-
-            // Call the method to test
-            Amplifier.runAmplifier(rc, turnCount, myMap);
-
-            // Check if the robot moved towards the HQ
-            assertNotEquals(robot.hqLoc, rc.moveTowardsLocation);
-        }
-        @Test
-        public void testRunAmplifierNearbyHQNoWell() throws GameActionException {
-            // Create a mock RobotController
-            MockRobotController rc = new MockRobotController();
-            RobotPlayer robot = new RobotPlayer();
-            int turnCount = 2;
-            Map myMap = new Map(20, 20);
-
-            // Set up mock locations with no island location
-            robot.islandLoc = new MapLocation(10, 10);
-            robot.hqLoc = new MapLocation(5, 5);
-            robot.wellLoc = null;
-
-            // Set up mock nearby robots with an amplifier nearby
-            RobotInfo[] nearbyRobots = {
-                    new RobotInfo(1, Team.A, RobotType.AMPLIFIER, new Inventory(), 50, new MapLocation(6, 6))
-            };
-            rc.setNearbyRobots(nearbyRobots);
-
-            // Call the method to test
-            Amplifier.runAmplifier(rc, turnCount, myMap);
-
-            // Check if the robot moved towards the HQ
-            assertNull(rc.moveTowardsLocation);
-        }
-        @Test
-        public void testRunAmplifierNearbyWellNoHQ() throws GameActionException {
-            // Create a mock RobotController
-            MockRobotController rc = new MockRobotController();
-            RobotPlayer robot = new RobotPlayer();
-            int turnCount = 2;
-            Map myMap = new Map(20, 20);
-
-            // Set up mock locations with no island location
-            robot.islandLoc = new MapLocation(10, 10);
-            robot.hqLoc = null;
-            robot.wellLoc = new MapLocation(7, 7);
-
-            // Set up mock nearby robots with an amplifier nearby
-            RobotInfo[] nearbyRobots = {
-                    new RobotInfo(1, Team.A, RobotType.AMPLIFIER, new Inventory(), 50, new MapLocation(6, 6))
-            };
-            rc.setNearbyRobots(nearbyRobots);
-
-            // Call the method to test
-            Amplifier.runAmplifier(rc, turnCount, myMap);
-
-            // Check if the robot moved towards the well
-            assertNull(rc.moveTowardsLocation);
-        }
-        @Test
-        public void testRunAmplifierNearbyHQWell() throws GameActionException {
-            // Create a mock RobotController
-            MockRobotController rc = new MockRobotController();
-            RobotPlayer robot = new RobotPlayer();
-            int turnCount = 2;
-            Map myMap = new Map(20, 20);
-
-            // Set up mock locations with no island location
-            robot.islandLoc = new MapLocation(10, 10);
-            robot.hqLoc = new MapLocation(5, 5);
-            robot.wellLoc = new MapLocation(7, 7);
-
-            // Set up mock nearby robots with an amplifier nearby
-            RobotInfo[] nearbyRobots = {
-                    new RobotInfo(1, Team.A, RobotType.AMPLIFIER, new Inventory(), 50, new MapLocation(6, 6))
-            };
-            rc.setNearbyRobots(nearbyRobots);
-
-            // Call the method to test
-            Amplifier.runAmplifier(rc, turnCount, myMap);
-
-            // Check if the robot moved towards the well
-            assertNotEquals(robot.wellLoc, rc.moveTowardsLocation);
-        }
 }

@@ -357,12 +357,14 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public WellInfo[] senseNearbyWells() {
-        return new WellInfo[0];
+        WellInfo[] ret_val = {senseWell_Ret_Value};
+        return ret_val;
     }
 
     @Override
     public WellInfo[] senseNearbyWells(int radiusSquared) throws GameActionException {
-        return new WellInfo[0];
+        WellInfo[] ret_val = {senseWell_Ret_Value};
+        return ret_val;
     }
 
     @Override
