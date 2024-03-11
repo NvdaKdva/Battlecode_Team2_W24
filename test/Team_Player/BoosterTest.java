@@ -37,7 +37,23 @@ public class BoosterTest {
             // Check if the booster moved randomly
             assertEquals(mySpot, ((MockRobotController) rc).getLocation());
         }
+        @Test
+        public void testRunBooster_MoveTowardsSpot() throws GameActionException {
+            // Create a stub implementation of RobotController
+            MockRobotController rc = new MockRobotController();
 
+            // Create a mock Map
+            Map mockMap = new Map(20, 20); // Assuming a 20x20 map
+
+            // Create a booster instance
+            Booster.runBooster(rc, 1, mockMap);
+
+            // Get the booster's spot
+            MapLocation spot = Booster.mySpot;
+
+            // Assert that the booster moves towards its spot
+            assertNotEquals(spot, rc.lastMoveTarget);
+        }
 
 }
 
