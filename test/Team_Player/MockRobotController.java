@@ -43,6 +43,9 @@ public  class MockRobotController implements RobotController {
     public MapInfo[] sensedMapInfo = null;
     public MapLocation attackedLocation;
     private int turnCount;
+    public boolean buildAnchorCalled;
+    public MapLocation lastMoveTarget;
+    public double priority = 1.0;
 
     public MockRobotController(MapLocation islandLoc, MapLocation hqLoc, MapLocation wellLoc, RobotInfo[] nearbyRobots) {
         this.islandLoc = islandLoc;
@@ -116,6 +119,10 @@ public  class MockRobotController implements RobotController {
 
     public void setNearbyRobots(RobotInfo[] nearbyRobots) {
         this.nearbyRobots = nearbyRobots;
+    }
+
+    public void setPriority(double value) {
+        priority = value;
     }
 
     @Override
@@ -445,6 +452,7 @@ public  class MockRobotController implements RobotController {
     @Override
     public void move(Direction dir) throws GameActionException {
         moveCalled = true;
+        lastMoveTarget = getLocation().add(dir);
 
         if (canMoveResult) {
             hasMoved = true;
@@ -524,7 +532,7 @@ public  class MockRobotController implements RobotController {
 
     @Override
     public void buildAnchor(Anchor anchor) throws GameActionException {
-
+        buildAnchorCalled = true;
     }
 
     @Override
@@ -682,6 +690,9 @@ public  class MockRobotController implements RobotController {
         return lastMove;
     }
 
+
+
+
     public void setTurnCount(int i) {
         this.turnCount = i;
     }
@@ -694,7 +705,6 @@ public  class MockRobotController implements RobotController {
     public void setWellLocation(MapLocation wellLocation) {
         this.wellLoc = wellLocation;
     }
-
 
 
 

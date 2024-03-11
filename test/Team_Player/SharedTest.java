@@ -1,5 +1,6 @@
 package Team_Player;
 
+import battlecode.world.Inventory;
 import org.junit.Ignore;
 import org.junit.Test;
 import battlecode.common.*;
@@ -30,17 +31,8 @@ public class SharedTest {
         // Ensure that the direction chosen is within the defined directions array
         assertTrue(rc.moveCalled);
     }
-    /*@Test
-    public void testMoveTowards() throws GameActionException {
-        // Create a mock RobotController for testing
-        MockRobotController rc = new MockRobotController();
-        // Set the initial direction
-        Direction initialDirection = Direction.NORTH;
-        // Simulate moving towards a location
-        Shared.moveTowards(rc, new MapLocation(5, 5));
-        // Ensure that the robot moves towards the location
-        assertTrue(rc.moveCalled);
-    }*/
+
+
     @Test
     public void testMoveRandomValid() throws GameActionException {
         // Create a mock RobotController
@@ -67,5 +59,20 @@ public class SharedTest {
         // Verify that rc.move was called with the correct direction
         assertTrue("Robot should move if canMove returns true", rc.hasMoved());
     }
+    @Test
+    public void testScanManaWell_ManaWell() throws GameActionException {
+        // Create a stub implementation of RobotController
+        MockRobotController rc = new MockRobotController();
+        // Set the mana well location
+        rc.setWellLocation(new MapLocation(10, 10));
+        // Call the method to test
+        MapLocation wellLocation = Shared.scanManaWell(rc);
+
+        // Verify that the method returns the correct location
+        assertNotEquals(new MapLocation(10, 10), wellLocation);
+
+    }
+
+
 
 }

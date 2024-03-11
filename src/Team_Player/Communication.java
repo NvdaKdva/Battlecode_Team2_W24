@@ -73,30 +73,6 @@ class Communication {
         }
     }
 
-    static void updateIslandInfo(RobotController rc, int id) throws GameActionException {
-        if (headquarterLocs[0] == null) {
-            return;
-        }
-        MapLocation closestIslandLoc = null;
-        int closestDistance = -1;
-        MapLocation[] islandLocs = rc.senseNearbyIslandLocations(id);
-        for (MapLocation loc : islandLocs) {
-            int distance = headquarterLocs[0].distanceSquaredTo(loc);
-            if (closestIslandLoc == null || distance < closestDistance) {
-                closestDistance = distance;
-                closestIslandLoc = loc;
-            }
-        }
-        // Remember reading is cheaper than writing so we don't want to write without knowing if it's helpful
-        int idx = id + STARTING_ISLAND_IDX;
-        int oldIslandValue = rc.readSharedArray(idx);
-        int updatedIslandValue = bitPackIslandInfo(rc, idx, closestIslandLoc);
-        if (oldIslandValue != updatedIslandValue) {
-            Message msg = new Message(idx, updatedIslandValue, RobotPlayer.turnCount);
-            messagesQueue.add(msg);
-        }
-    }
-
     static int bitPackIslandInfo(RobotController rc, int islandId, MapLocation closestLoc) {
         int islandInt = locationToInt(rc, closestLoc);
         islandInt = islandInt << (TOTAL_BITS - MAPLOC_BITS);
@@ -148,26 +124,6 @@ class Communication {
         }
     }
 
-    // for each enemy location stored, delete of : 1.robot can see it 2.no enemy on location
-    static void clearObsoleteEnemies(RobotController rc) {
-        for (int i = STARTING_ENEMY_IDX; i < GameConstants.SHARED_ARRAY_LENGTH; i++) {
-            try {
-                MapLocation mapLoc = intToLocation(rc, rc.readSharedArray(i));
-                if (mapLoc == null) {
-                    continue;
-                }
-                if (rc.canSenseLocation(mapLoc) && rc.senseNearbyRobots(mapLoc, AREA_RADIUS, rc.getTeam().opponent()).length == 0) {
-                    Message msg = new Message(i, locationToInt(rc, null), RobotPlayer.turnCount);
-                    messagesQueue.add(msg);
-                }
-            } catch (GameActionException e) {
-                continue;
-            }
-
-        }
-    }
-
-    //Add location to array if : 1. not part of an existing  cluster or 2. there is an empty slot
     static void reportEnemy(RobotController rc, MapLocation enemy) {
         int slot = -1;
         for (int i = STARTING_ENEMY_IDX; i < GameConstants.SHARED_ARRAY_LENGTH; i++) {

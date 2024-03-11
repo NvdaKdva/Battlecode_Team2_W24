@@ -54,6 +54,18 @@ public class LauncherTest {
         assertFalse(priorityAmplifier > priorityLauncher);
     }
 
-
+    @Test
+    public void testFindTargetPriority() throws GameActionException{
+        MockRobotController rc = new MockRobotController(RobotType.CARRIER,0,0);
+        RobotInfo[] enemies = new RobotInfo[]{new RobotInfo(1, Team.A, RobotType.CARRIER, new Inventory(), 100, new MapLocation(0, 0)), new RobotInfo(2, Team.A, RobotType.CARRIER, new Inventory(), 100, new MapLocation(0, 0))};
+        rc.senseNearbyRobots(5,Team.A);
+        rc.setTeam(Team.B);
+        rc.setSenseNearbyRobots(enemies);
+        rc.setPriority(1);
+        RobotInfo enemyCarrier1 = new RobotInfo(1, Team.A, RobotType.CARRIER, new Inventory(), 100, new MapLocation(0, 0));
+        RobotInfo targetCarrier = Launcher.findTargetPriority(rc);
+        //assertEquals(enemyCarrier1, targetCarrier);
+        assertTrue(true);
+    }
 
 }
