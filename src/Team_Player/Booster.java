@@ -14,13 +14,10 @@ public class Booster {
 
         //change locations if not 20x20
         if(turnCount == 1) {
-            if(rc.getMapWidth() != 20 && rc.getMapHeight() != 20) {
-                booster_arr = upDateArray(rc, rc.getMapWidth(), rc.getMapHeight());
-            }
+            if(rc.getMapWidth() != 20 && rc.getMapHeight() != 20) { booster_arr = upDateArray(rc, rc.getMapWidth(), rc.getMapHeight()); }
 
             //find my spot if I don't have one
             mySpot = Booster.getMySpot(rc.readSharedArray(61));
-
         }
 
         //move to my spot then move randomly near it

@@ -19,8 +19,6 @@ public class Headquarters {
             Direction.NORTHWEST,
     };
     static int estLauncherCount = 0;
-    static int estAmplifierCount = 0;
-    static int maxAmpLim = 0;
 
     /** Run a single turn for a Headquarters.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn. */
@@ -46,13 +44,12 @@ public class Headquarters {
         }
 
         //Determines ideal number of launchers
-        if(turnCount == 0) { maxAmpLim = rc.getMapHeight()/5 * rc.getMapWidth()/5 * 2; }
         if (rc.getRoundNum() % 75 == 0) {
             //if (rc.getRoundNum() > 50 && rc.getRoundNum() % 5 == 0 && estAmplifierCount < maxAmpLim) {
             rc.setIndicatorString("Trying to build an amplifier");
             if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
                 rc.buildRobot(RobotType.AMPLIFIER, newLoc);
-                estAmplifierCount++;// Note: This count will not decrease when amplifiers are destroyed.
+                rc.writeSharedArray(62,rc.readSharedArray(62)+1);
             }
         }
         if (rc.getRoundNum() % 20 == 0) {
