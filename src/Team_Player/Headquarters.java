@@ -24,7 +24,9 @@ public class Headquarters {
 
     /** Run a single turn for a Headquarters.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn. */
-    static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
+    static void runHeadquarters(RobotController rc, int turnCount, Map myMap) throws GameActionException {
+        if(turnCount <= 3) myMap.updateMap(rc, turnCount);
+
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
@@ -35,11 +37,11 @@ public class Headquarters {
             rc.setIndicatorString("Building Standard anchor!");
         }
 
-        if(rc.getRoundNum() % 10 == 0 && rc.readSharedArray(1) < 18) {
+        if(rc.getRoundNum() % 10 == 0 && rc.readSharedArray(61) < 18) {
             rc.setIndicatorString("Trying to build a booster");
             if (rc.canBuildRobot(RobotType.BOOSTER, newLoc)) {
                 rc.buildRobot(RobotType.BOOSTER, newLoc);
-                rc.writeSharedArray(1,rc.readSharedArray(1)+1);
+                rc.writeSharedArray(61,rc.readSharedArray(61)+1);
             }
         }
 
@@ -56,7 +58,8 @@ public class Headquarters {
         if (rc.getRoundNum() % 20 == 0) {
             //if (rc.getRoundNum() == 0 || rc.getRoundNum() % 5 != 0 && rc.getRoundNum() % 3 == 0) {
             rc.setIndicatorString("Trying to build a carrier");
-            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+            if (rc.senseMapInfo(newLoc).getCurrentDirection() == Direction.CENTER
+                && rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                 rc.buildRobot(RobotType.CARRIER, newLoc);
             }
         }

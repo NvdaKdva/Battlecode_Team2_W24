@@ -9,7 +9,9 @@ public class Amplifier {
 
     /** Run a single turn for an Amplifier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn. */
-    static void runAmplifier(RobotController rc) throws GameActionException {
+    static void runAmplifier(RobotController rc, int turnCount, Map myMap) throws GameActionException {
+        myMap.updateMap(rc, turnCount);
+
         // Scan for critical locations
         Shared.scanIslands(rc);
         Shared.scanHQ(rc);
