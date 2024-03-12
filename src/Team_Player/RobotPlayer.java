@@ -67,7 +67,7 @@ public strictfp class RobotPlayer {
                     case CARRIER:          Carrier.runCarrier(rc, turnCount, myMap);            break;
                     case LAUNCHER:         Launcher.runLauncher(rc,turnCount, myMap);           break;
                     case BOOSTER:          Booster.runBooster(rc,turnCount, myMap);             break;
-                    case DESTABILIZER:
+                    case DESTABILIZER:     Destabilizer.runDestabilizer(rc);                    break;
                     case AMPLIFIER:        Amplifier.runAmplifier(rc, turnCount, myMap);        break;
                 }
             } catch (GameActionException e) {
