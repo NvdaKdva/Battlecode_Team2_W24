@@ -68,7 +68,12 @@ public class Headquarters {
                 estLauncherCount++; // Note: This count will not decrease when launchers are destroyed.
             }
         }
+        if (rc.getRoundNum() % 30 == 0) {
+            rc.setIndicatorString("Trying to build a carrier");
+            if (rc.canBuildRobot(RobotType.DESTABILIZER, newLoc)) {
+                rc.buildRobot(RobotType.DESTABILIZER, newLoc);
+            }
+        }
     }
-
     ///** Support Functions */
 }
